@@ -1,2 +1,7 @@
-# Entregas-BBDDA
-Entregas 5, 6 y 7
+# Grupo06
+Juchani Javier Andres_36938637_jajuchani
+Maria Jose Mariscal_92869937_majomariscal
+Navarro Ojeda Camila Micaela_44689707_NavarroCam
+Franchetti Luciana_42775831_LuFranchetti
+Jaureguiberry Facundo Agustin_42056476_JaureFacu
+Gambaro Lartigue Guadalupe_45206331_GuadaGambaro
