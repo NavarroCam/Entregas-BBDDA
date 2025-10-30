@@ -219,3 +219,48 @@ CREATE TABLE tp.ServicioPublico (
 
 END
 go
+
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
+TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Seguro')
+
+BEGIN
+CREATE TABLE tp.Seguro (
+  NRO_Factura INT PRIMARY KEY,
+  NombreEmpresaSeguro VARCHAR(20) NOT NULL,
+  Importe DECIMAL(8,2) NOT NULL,
+  ID_Expensa INT NOT NULL,
+  CONSTRAINT FK_S_Expensa FOREIGN KEY (ID_Expensa) REFERENCES tp.Expensa(ID_Expensa)
+);
+
+
+END
+go
+
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
+TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Limpieza')
+
+BEGIN
+CREATE TABLE tp.Limpieza (
+  NRO_FacturaLimpieza INT PRIMARY KEY,
+  ID_Expensa INT NOT NULL,
+  Tipo CHAR (1) NOT NULL CHECK (Tipo IN ('S', 'E')),
+  CONSTRAINT FK_L_Expensa FOREIGN KEY (ID_Expensa) REFERENCES tp.Expensa(ID_Expensa)
+);
+
+END
+go
+
+
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
+TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'ServicioDomesticoLimpieza')
+
+BEGIN
+CREATE TABLE tp.ServicioDomesticoLimpieza (
+  NRO_FacturaLimpieza INT PRIMARY KEY,
+  SueldoEmpleado DECIMAL (8,2) NOT NULL,
+  ImporteProductos DECIMAL(8,2) NOT NULL,
+  CONSTRAINT FK_SD_NRO_FacturaLimpieza FOREIGN KEY (NRO_FacturaLimpieza) REFERENCES tp.Limpieza(NRO_FacturaLimpieza)
+);
+
+END
+go
