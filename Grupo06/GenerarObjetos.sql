@@ -12,7 +12,7 @@ BEGIN
 END 
 go
 
----		Creación de tablas 
+---		Creaciï¿½n de tablas 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
 TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Administracion')
 BEGIN
@@ -112,6 +112,62 @@ CREATE TABLE tp.UnidadFuncional (
   CONSTRAINT FK_UF_Consorcio FOREIGN KEY (ID_Consorcio) REFERENCES tp.Consorcio(ID_Consorcio),
   CONSTRAINT FK_UF_Propietario FOREIGN KEY (DNI_Propietario) REFERENCES tp.Propietario(DNI_Propietario),
   CONSTRAINT FK_UF_EstadodeCuenta FOREIGN KEY (ID_EstadodeCuenta) REFERENCES tp.EstadodeCuenta(ID_EstadodeCuenta)
+);
+END
+go
+
+
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
+TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Inquilino')
+BEGIN
+
+CREATE TABLE tp.Inquilino (
+  DNI_Inquilino INT PRIMARY KEY CHECK(LEN(DNI_Inquilino)=8),
+  Apellido VARCHAR(20) NOT NULL,
+  Nombres VARCHAR(20) NOT NULL,
+  CorreoElectronico VARCHAR(30) NOT NULL,
+  Telefono CHAR(10) NOT NULL CHECK (telefono LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
+  CVU_CBU INT NULL CHECK(LEN(CVU_CBU)=22)
+);
+END
+go
+
+
+
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
+TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Expensa')
+BEGIN
+
+CREATE TABLE tp.Expensa (
+  ID_Expensa INT IDENTITY(1,1) PRIMARY KEY,
+  FechaEmision SMALLDATETIME NOT NULL,
+  TotalAPagar DECIMAL(8,4) NOT NULL, --CALCULAR CON SP
+  PrimerFechaVencimiento SMALLDATETIME NOT NULL,
+  SegundaFechaVencimiento SMALLDATETIME NOT NULL,
+  ID_Consorcio INT NOT NULL,
+  DNI_Propietario INT NOT NULL,
+  DNI_Inquilino INT NOT NULL,
+  CONSTRAINT FK_EX_Consorcio FOREIGN KEY (ID_Consorcio) REFERENCES tp.Consorcio(ID_Consorcio),
+  CONSTRAINT FK_EX_Propietario FOREIGN KEY (DNI_Propietario) REFERENCES tp.Propietario(DNI_Propietario),
+  CONSTRAINT FK_EX_Inquilino FOREIGN KEY (DNI_Inquilino) REFERENCES tp.Inquilino(DNI_Inquilino)
+);
+END
+go
+
+
+
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
+TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'GastoExtraordinario')
+BEGIN
+
+CREATE TABLE tp.GastoExtraordinario (
+  ID_GastoExtraordinario INT IDENTITY(1,1) PRIMARY KEY,
+  Tipo CHAR(1) NOT NULL CHECK(Tipo IN ('R', 'C')),
+  Importe DECIMAL(8,4) NOT NULL CHECK (Importe > 0),
+  Detalle VARCHAR (100) NOT NULL,
+  NroCuota INT NOT NULL,
+  ID_Expensa INT NOT NULL,
+  CONSTRAINT FK_GE_Expensa FOREIGN KEY (ID_Expensa) REFERENCES tp.Expensa (ID_Expensa)  
 );
 END
 go
