@@ -3,7 +3,7 @@
   <Items>
     <LogicalFolder Name="Conexiones" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="CAM-PC\SQLEXPRESS01:CAM-PC\Camila Navarro">
+        <ConnectionNode Name="CAM-PC\SQLEXPRESS01:DESKTOP-JKOJ5PF\ecgam">
           <Created>2025-10-26T16:55:08.1712424-03:00</Created>
           <Type>SQL</Type>
           <Server>CAM-PC\SQLEXPRESS01</Server>
@@ -18,13 +18,28 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Consulta</ApplicationName>
         </ConnectionNode>
+        <ConnectionNode Name="DESKTOP-JKOJ5PF\SQLEXPRESS02:DESKTOP-JKOJ5PF\ecgam">
+          <Created>2025-10-30T17:01:01.0105534-03:00</Created>
+          <Type>SQL</Type>
+          <Server>DESKTOP-JKOJ5PF\SQLEXPRESS02</Server>
+          <UserName />
+          <Authentication>Autenticación de Windows</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <TrustServerCertificate>True</TrustServerCertificate>
+          <HostNameInServerCertificate />
+          <EncryptionOption>True</EncryptionOption>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Consulta</ApplicationName>
+        </ConnectionNode>
       </Items>
     </LogicalFolder>
     <LogicalFolder Name="Consultas" Type="0" Sorted="true">
       <Items>
         <FileNode Name="GenerarObjetos.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>GenerarObjetos.sql</FullPath>
         </FileNode>
