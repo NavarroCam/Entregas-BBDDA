@@ -61,3 +61,57 @@ CREATE TABLE tp.Consorcio (
 );
 END
 go
+
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
+TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Propietario')
+BEGIN
+
+CREATE TABLE tp.Propietario (
+  DNI_Propietario INT PRIMARY KEY CHECK(LEN(DNI_Propietario)=8),
+  Apellido VARCHAR(20) NOT NULL,
+  Nombres VARCHAR(20) NOT NULL,
+  CorreoElectronico VARCHAR(30) NOT NULL,
+  Telefono CHAR(10) NOT NULL CHECK (telefono LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
+  CVU_CBU INT NULL CHECK(LEN(CVU_CBU)=22)
+);
+END
+go 
+
+
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
+TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'EstadodeCuenta')
+BEGIN
+
+CREATE TABLE tp.EstadodeCuenta (
+  ID_EstadodeCuenta INT IDENTITY(1,1) PRIMARY KEY,
+  SaldoAnterior DECIMAL(8,2) NOT NULL CHECK(SaldoAnterior >= 0),
+  PagoRecibido DECIMAL(8,2) NOT NULL CHECK(PagoRecibido >= 0),
+  InteresPorMora1V DECIMAL (8,2) NOT NULL DEFAULT 0, --CALCULAR CON SP,
+  InteresPorMora2V DECIMAL (8,2) NOT NULL DEFAULT 0, --CALCULAR CON SP,
+  Deuda DECIMAL(8,2) NOT NULL DEFAULT 0, --CALCULAR CON SP
+  ImporteCochera DECIMAL(8,2) NOT NULL CHECK (ImporteCochera >=0) DEFAULT 0,
+  ImporteBaulera DECIMAL(8,2) NOT NULL CHECK (ImporteBaulera >=0) DEFAULT 0,
+  );
+END
+go
+
+
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
+TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'UnidadFuncional')
+BEGIN
+
+CREATE TABLE tp.UnidadFuncional (
+  ID_UF INT IDENTITY(1,1) PRIMARY KEY,
+  ID_Consorcio INT NOT NULL,
+  Piso INT NOT NULL,
+  Departamento CHAR(3) NOT NULL,
+  M2_Unidad DECIMAL(4,2) NULL,
+  PorcentajeProrrateo DECIMAL (5,4) NOT NULL, --CALCULAR CON SP
+  DNI_Propietario INT NOT NULL,
+  ID_EstadodeCuenta INT NOT NULL,
+  CONSTRAINT FK_UF_Consorcio FOREIGN KEY (ID_Consorcio) REFERENCES tp.Consorcio(ID_Consorcio),
+  CONSTRAINT FK_UF_Propietario FOREIGN KEY (DNI_Propietario) REFERENCES tp.Propietario(DNI_Propietario),
+  CONSTRAINT FK_UF_EstadodeCuenta FOREIGN KEY (ID_EstadodeCuenta) REFERENCES tp.EstadodeCuenta(ID_EstadodeCuenta)
+);
+END
+go
