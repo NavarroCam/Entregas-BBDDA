@@ -171,3 +171,51 @@ CREATE TABLE tp.GastoExtraordinario (
 );
 END
 go
+
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
+TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'GastoGeneral')
+
+BEGIN
+CREATE TABLE tp.GastoGeneral (
+  NRO_Factura INT PRIMARY KEY,
+  NombreEmpresa VARCHAR(20) NOT NULL,
+  NombrePersona VARCHAR(20) NOT NULL,
+  Importe DECIMAL(8,2) NOT NULL,
+  ID_Expensa INT NOT NULL,
+  CONSTRAINT FK_GG_Expensa FOREIGN KEY (ID_Expensa) REFERENCES tp.Expensa(ID_Expensa)
+);
+
+END
+go
+
+
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
+TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'GastoAdministracion')
+
+BEGIN
+CREATE TABLE tp.GastoAdministracion (
+  NRO_Factura INT PRIMARY KEY,
+  Importe DECIMAL(8,2) NOT NULL,
+  ID_Expensa INT NOT NULL,
+  CONSTRAINT FK_GA_Expensa FOREIGN KEY (ID_Expensa) REFERENCES tp.Expensa(ID_Expensa)
+);
+
+END
+go
+
+
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
+TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'ServicioPublico')
+
+BEGIN
+CREATE TABLE tp.ServicioPublico (
+  NRO_Factura INT PRIMARY KEY,
+  ImporteLuz DECIMAL(8,2) NOT NULL,
+  ImporteAgua DECIMAL(8,2) NOT NULL,
+  ImporteInternet DECIMAL(8,2) NOT NULL DEFAULT 0,
+  ID_Expensa INT NOT NULL,
+  CONSTRAINT FK_SP_Expensa FOREIGN KEY (ID_Expensa) REFERENCES tp.Expensa(ID_Expensa)
+);
+
+END
+go
