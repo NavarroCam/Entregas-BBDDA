@@ -35,9 +35,9 @@ BEGIN
 CREATE TABLE tp.EstadoFinanciero (
  ID_EF INT IDENTITY(1,1) PRIMARY KEY,
  SaldoAnterior DECIMAL(8,2) NOT NULL CHECK(SaldoAnterior >= 0),
- IngresoPagoEnTermino DECIMAL(8,2) NOT NULL CHECK(PagoEnTermino >= 0),
- IngresoPagoAdeudado DECIMAL(8,2)  NOT NULL CHECK(PagoAdeudado>= 0),
- IngresoPagoAdelantado DECIMAL(8,2)  NOT NULL CHECK(PagoAdelantado >= 0),
+ IngresoPagoEnTermino DECIMAL(8,2) NOT NULL CHECK(IngresoPagoEnTermino >= 0),
+ IngresoPagoAdeudado DECIMAL(8,2)  NOT NULL CHECK(IngresoPagoAdeudado>= 0),
+ IngresoPagoAdelantado DECIMAL(8,2)  NOT NULL CHECK(IngresoPagoAdelantado >= 0),
  EgresoGastoMensual DECIMAL(8,2) NOT NULL CHECK(EgresoGastoMensual >= 0),
  SaldoAlCierre DECIMAL(8,2) NOT NULL --VER COMO SE CALCULA (SP, TRIGGER, ETC.)
 );
