@@ -95,6 +95,70 @@ EXEC tp.ImportarAdministracion
 
 
 
+----------------------------------------SP IMPORTACION DE DATOS TABLA ADMINISTRACION------------------------------
+
+
+IF NOT EXISTS (
+    SELECT * FROM sys.objects 
+    WHERE object_id = OBJECT_ID(N'tp.sp_ImportarPropietariosInquilinos') AND type = 'P')
+BEGIN
+    EXEC('CREATE PROCEDURE tp.sp_ImportarPropietariosInquilinos AS BEGIN SET NOCOUNT ON; END')
+END
+GO
+
+ALTER PROCEDURE tp.sp_ImportarPropietariosInquilinos
+    @RutaArchivo NVARCHAR(260)
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+    -- Tabla temporal para cargar el archivo
+    CREATE TABLE #TempDatos (
+        Nombre VARCHAR(30),
+        Apellido VARCHAR(30),
+        DNI INT,
+        Email VARCHAR(50),
+        Telefono CHAR(10),
+        CVU_CBU CHAR(22),
+        Inquilino BIT
+    );
+
+    -- Importar archivo CSV
+    DECLARE @sql NVARCHAR(MAX) = '
+        BULK INSERT #TempDatos     
+        FROM ''' + @RutaArchivo + '''
+        WITH (
+            FORMAT = ''CSV'',
+            FIRSTROW = 2,
+            FIELDTERMINATOR = '','',
+            ROWTERMINATOR = ''\n'',
+            CODEPAGE = ''65001''
+        );';
+    EXEC sp_executesql @sql;
+
+    -- Insertar en Propietario (Inquilino = 0)
+    INSERT INTO tp.Propietario (DNI_Propietario, Apellido, Nombres, CorreoElectronico, Telefono, CVU_CBU)
+    SELECT DNI, Apellido, Nombre, Email, Telefono, CVU_CBU
+    FROM #TempDatos
+    WHERE Inquilino = 0
+      AND NOT EXISTS (SELECT 1 FROM tp.Propietario p WHERE p.DNI_Propietario = #TempDatos.DNI);
+
+    -- Insertar en Inquilino (Inquilino = 1)
+    INSERT INTO tp.Inquilino (DNI_Inquilino, Apellido, Nombres, CorreoElectronico, Telefono, CVU_CBU)
+    SELECT DNI, Apellido, Nombre, Email, Telefono, CVU_CBU
+    FROM #TempDatos
+    WHERE Inquilino = 1
+      AND NOT EXISTS (SELECT 1 FROM tp.Inquilino i WHERE i.DNI_Inquilino = #TempDatos.DNI);
+
+    DROP TABLE #TempDatos;
+
+END;
+GO
+
+EXEC tp.sp_ImportarPropietariosInquilinos '\\DESKTOP-JKOJ5PF\consorcios\Inquilino-propietarios-datos.csv'
+
+SELECT* FROM tp.Propietario
 
 
 --Majo

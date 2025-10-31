@@ -67,12 +67,12 @@ TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Propietario')
 BEGIN
 
 CREATE TABLE tp.Propietario (
-  DNI_Propietario INT PRIMARY KEY CHECK(LEN(DNI_Propietario)=8),
-  Apellido VARCHAR(20) NOT NULL,
-  Nombres VARCHAR(20) NOT NULL,
-  CorreoElectronico VARCHAR(30) NOT NULL,
+  DNI_Propietario INT PRIMARY KEY, --CHECK(LEN(DNI_Propietario)=8)
+  Apellido VARCHAR(30) NOT NULL,
+  Nombres VARCHAR(30) NOT NULL,
+  CorreoElectronico VARCHAR(50) NOT NULL,
   Telefono CHAR(10) NOT NULL CHECK (telefono LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
-  CVU_CBU INT NULL CHECK(LEN(CVU_CBU)=22)
+  CVU_CBU CHAR (22) NOT NULL
 );
 END
 go 
@@ -123,11 +123,11 @@ BEGIN
 
 CREATE TABLE tp.Inquilino (
   DNI_Inquilino INT PRIMARY KEY CHECK(LEN(DNI_Inquilino)=8),
-  Apellido VARCHAR(20) NOT NULL,
-  Nombres VARCHAR(20) NOT NULL,
-  CorreoElectronico VARCHAR(30) NOT NULL,
+  Apellido VARCHAR(30) NOT NULL,
+  Nombres VARCHAR(30) NOT NULL,
+  CorreoElectronico VARCHAR(50) NOT NULL,
   Telefono CHAR(10) NOT NULL CHECK (telefono LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
-  CVU_CBU INT NULL CHECK(LEN(CVU_CBU)=22)
+  CVU_CBU CHAR (22) NOT NULL
 );
 END
 go
