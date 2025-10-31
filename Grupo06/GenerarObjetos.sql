@@ -264,3 +264,48 @@ CREATE TABLE tp.ServicioDomesticoLimpieza (
 
 END
 go
+
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
+TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'EmpresaLimpieza')
+
+BEGIN
+CREATE TABLE tp.EmpresaLimpieza (
+  NRO_FacturaLimpieza INT PRIMARY KEY,
+  NombreEmpresaLimpieza VARCHAR(30) NOT NULL,
+  Importe DECIMAL(8,2) NOT NULL,
+  CONSTRAINT FK_EL_NRO_FacturaLimpieza FOREIGN KEY (NRO_FacturaLimpieza) REFERENCES tp.Limpieza(NRO_FacturaLimpieza)
+);
+
+
+END
+go
+
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
+TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'MantenimientoCtaBancaria')
+
+BEGIN
+CREATE TABLE tp.MantenimientoCtaBancaria (
+  NRO_Cuenta INT PRIMARY KEY,
+  EntidadBanco VARCHAR(30) NOT NULL,
+  Importe DECIMAL(8,2) NOT NULL,
+  ID_Expensa INT NOT NULL,
+  CONSTRAINT FK_MCB_Expensa FOREIGN KEY (ID_Expensa) REFERENCES tp.Expensa(ID_Expensa)
+);
+
+END
+go
+
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
+TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Pago')
+
+BEGIN
+CREATE TABLE tp.Pago (
+  ID_Pago INT IDENTITY (1,1) PRIMARY KEY,
+  Importe DECIMAL (8,2) NOT NULL,
+  Estado VARCHAR (15) NOT NULL CHECK (Estado IN ('Pagado', 'No Pagado')),
+  ID_Expensa INT NOT NULL,
+  CONSTRAINT FK_P_Expensa FOREIGN KEY (ID_Expensa) REFERENCES tp.Expensa(ID_Expensa)
+);
+
+END
+go
