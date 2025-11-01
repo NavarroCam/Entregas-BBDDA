@@ -1,8 +1,9 @@
 IF EXISTS (SELECT name FROM sys.databases WHERE name = 'Com5600G06')
 BEGIN
-    -- Terminar conexiones activas
+   
+   -- Terminar conexiones activas
    ALTER DATABASE [Com5600G06] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-
+   
     -- Eliminar la base
     DROP DATABASE Com5600G06;
 END
@@ -14,6 +15,8 @@ BEGIN
 CREATE DATABASE Com5600G06
 END
 go
+
+ALTER DATABASE Com5600G06 SET MULTI_USER WITH ROLLBACK IMMEDIATE; --- PARA USAR EN VARIAS QUERYS A LA VEZ
 
 USE Com5600G06
 
@@ -61,8 +64,7 @@ TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Consorcio')
 BEGIN
 
 CREATE TABLE tp.Consorcio (
-  ID_Consorcio INT IDENTITY(1,1) PRIMARY KEY,
-  Nombre VARCHAR(30) NOT NULL UNIQUE,
+  Nombre VARCHAR(30) primary key,
   Direccion VARCHAR(30) NOT NULL,
   SuperficieTotal DECIMAL(8,2) NOT NULL,
   ID_Administracion INT NOT NULL,
@@ -112,15 +114,16 @@ TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'UnidadFuncional')
 BEGIN
 
 CREATE TABLE tp.UnidadFuncional (
-  ID_UF INT IDENTITY(1,1) PRIMARY KEY,
-  ID_Consorcio INT NOT NULL,
+  ID_UF INT,
+  NombreConsorcio VARCHAR(30),
   Piso INT NOT NULL,
   Departamento CHAR(3) NOT NULL,
   M2_Unidad DECIMAL(4,2) NULL,
   PorcentajeProrrateo DECIMAL (5,4) NOT NULL, --CALCULAR CON SP
   DNI_Propietario INT NOT NULL,
   ID_EstadodeCuenta INT NOT NULL,
-  CONSTRAINT FK_UF_Consorcio FOREIGN KEY (ID_Consorcio) REFERENCES tp.Consorcio(ID_Consorcio),
+  CONSTRAINT PK_UNIDAD_FUNCIONAL PRIMARY KEY (ID_UF,NombreConsorcio),
+  CONSTRAINT FK_UF_Consorcio FOREIGN KEY (NombreConsorcio) REFERENCES tp.Consorcio(Nombre),
   CONSTRAINT FK_UF_Propietario FOREIGN KEY (DNI_Propietario) REFERENCES tp.Propietario(DNI_Propietario),
   CONSTRAINT FK_UF_EstadodeCuenta FOREIGN KEY (ID_EstadodeCuenta) REFERENCES tp.EstadodeCuenta(ID_EstadodeCuenta)
 );
@@ -154,9 +157,10 @@ CREATE TABLE tp.Expensa (
   PrimerFechaVencimiento SMALLDATETIME NOT NULL,
   SegundaFechaVencimiento SMALLDATETIME NOT NULL,
   ID_UF INT NOT NULL,
+  NombreConsorcio VARCHAR(30),
   DNI_Propietario INT NOT NULL,
   DNI_Inquilino INT NOT NULL,
-  CONSTRAINT FK_EX_ID_UF FOREIGN KEY (ID_UF) REFERENCES tp.UnidadFuncional(ID_UF),
+  CONSTRAINT FK_EX_ID_UF FOREIGN KEY (ID_UF,NombreConsorcio) REFERENCES tp.UnidadFuncional(ID_UF,NombreConsorcio),
   CONSTRAINT FK_EX_Propietario FOREIGN KEY (DNI_Propietario) REFERENCES tp.Propietario(DNI_Propietario),
   CONSTRAINT FK_EX_Inquilino FOREIGN KEY (DNI_Inquilino) REFERENCES tp.Inquilino(DNI_Inquilino)
 );
