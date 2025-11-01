@@ -95,7 +95,7 @@ EXEC tp.ImportarAdministracion
 
 
 
-----------------------------------------SP IMPORTACION DE DATOS TABLA ADMINISTRACION------------------------------
+----------------------------------------SP IMPORTACION DE DATOS TABLA PROPIETARIOS E INQUILINOS------------------------------
 
 
 IF NOT EXISTS (
@@ -107,58 +107,70 @@ END
 GO
 
 ALTER PROCEDURE tp.sp_ImportarPropietariosInquilinos
-    @RutaArchivo NVARCHAR(260)
+@RutaArchivo NVARCHAR(260)
 AS
 BEGIN
-
     SET NOCOUNT ON;
 
-    -- Tabla temporal para cargar el archivo
+    -- Tabla temporal para datos crudos
     CREATE TABLE #TempDatos (
-        Nombre VARCHAR(30),
-        Apellido VARCHAR(30),
-        DNI INT,
-        Email VARCHAR(50),
-        Telefono CHAR(10),
-        CVU_CBU CHAR(22),
+        Nombre VARCHAR(100),
+        Apellido VARCHAR(100),
+        DNI VARCHAR(20),
+        Email VARCHAR(100),
+        Telefono VARCHAR(20),
+        CVU_CBU VARCHAR(50),
         Inquilino BIT
     );
 
-    -- Importar archivo CSV
+    -- Cargar CSV
     DECLARE @sql NVARCHAR(MAX) = '
-        BULK INSERT #TempDatos     
+        BULK INSERT #TempDatos
         FROM ''' + @RutaArchivo + '''
         WITH (
-            FORMAT = ''CSV'',
-            FIRSTROW = 2,
-            FIELDTERMINATOR = '','',
-            ROWTERMINATOR = ''\n'',
-            CODEPAGE = ''65001''
+           FIELDTERMINATOR = '','',
+           ROWTERMINATOR = ''\r\n'',
+           FIRSTROW = 2,
+           CODEPAGE = ''65001'',
+           TABLOCK
         );';
     EXEC sp_executesql @sql;
 
-    -- Insertar en Propietario (Inquilino = 0)
+    -- Insertar Propietarios
     INSERT INTO tp.Propietario (DNI_Propietario, Apellido, Nombres, CorreoElectronico, Telefono, CVU_CBU)
-    SELECT DNI, Apellido, Nombre, Email, Telefono, CVU_CBU
+    SELECT
+        CAST(DNI AS INT),
+        LTRIM(RTRIM(Apellido)),
+        LTRIM(RTRIM(Nombre)),
+        LTRIM(RTRIM(Email)),
+        RIGHT('0000000000' + Telefono, 10),
+        LEFT(REPLACE(REPLACE(CVU_CBU, ',', ''), 'E+021', ''), 22)
     FROM #TempDatos
     WHERE Inquilino = 0
       AND NOT EXISTS (SELECT 1 FROM tp.Propietario p WHERE p.DNI_Propietario = #TempDatos.DNI);
 
-    -- Insertar en Inquilino (Inquilino = 1)
+    -- Insertar Inquilinos
     INSERT INTO tp.Inquilino (DNI_Inquilino, Apellido, Nombres, CorreoElectronico, Telefono, CVU_CBU)
-    SELECT DNI, Apellido, Nombre, Email, Telefono, CVU_CBU
+    SELECT
+        CAST(DNI AS INT),
+        LTRIM(RTRIM(Apellido)),
+        LTRIM(RTRIM(Nombre)),
+        LTRIM(RTRIM(Email)),
+        RIGHT('0000000000' + Telefono, 10),
+        LEFT(REPLACE(REPLACE(CVU_CBU, ',', ''), 'E+021', ''), 22)
     FROM #TempDatos
     WHERE Inquilino = 1
       AND NOT EXISTS (SELECT 1 FROM tp.Inquilino i WHERE i.DNI_Inquilino = #TempDatos.DNI);
 
     DROP TABLE #TempDatos;
-
 END;
 GO
 
-EXEC tp.sp_ImportarPropietariosInquilinos '\\DESKTOP-JKOJ5PF\consorcios\Inquilino-propietarios-datos.csv'
+EXEC tp.sp_ImportarPropietariosInquilinos 'C:\Users\ecgam\Desktop\Inquilino-propietarios-datos.csv'
 
 SELECT* FROM tp.Propietario
+SELECT* FROM tp.Inquilino
+
 
 
 --Majo

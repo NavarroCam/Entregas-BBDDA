@@ -122,7 +122,7 @@ TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Inquilino')
 BEGIN
 
 CREATE TABLE tp.Inquilino (
-  DNI_Inquilino INT PRIMARY KEY CHECK(LEN(DNI_Inquilino)=8),
+  DNI_Inquilino INT PRIMARY KEY,
   Apellido VARCHAR(30) NOT NULL,
   Nombres VARCHAR(30) NOT NULL,
   CorreoElectronico VARCHAR(50) NOT NULL,
@@ -309,3 +309,5 @@ CREATE TABLE tp.Pago (
 
 END
 go
+
+
