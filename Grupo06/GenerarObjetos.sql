@@ -1,3 +1,13 @@
+IF EXISTS (SELECT name FROM sys.databases WHERE name = 'Com5600G06')
+BEGIN
+    -- Terminar conexiones activas
+   ALTER DATABASE [Com5600G06] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+
+    -- Eliminar la base
+    DROP DATABASE Com5600G06;
+END
+
+
 
 IF NOT EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name='Com5600G06') 
 BEGIN
