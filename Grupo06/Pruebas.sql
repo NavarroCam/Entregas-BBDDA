@@ -166,11 +166,67 @@ BEGIN
 END;
 GO
 
-EXEC tp.sp_ImportarPropietariosInquilinos 'C:\Users\ecgam\Desktop\Inquilino-propietarios-datos.csv'
+--######################################################################################################################################################################
 
-SELECT* FROM tp.Propietario
-SELECT* FROM tp.Inquilino
+EXEC tp.sp_ImportarPropietariosInquilinos 'C:\Users\Administrator\Desktop\TP_Base_de_datos_aplicada\Grupo06\consorcios\Inquilino-propietarios-datos.csv'
 
+ALTER PROCEDURE tp.sp_ImportarPropietariosInquilinos
+@RutaArchivo NVARCHAR(260)
+AS
+BEGIN
+    SET NOCOUNT ON;
 
+	CREATE TABLE #TempDatos (
+    Nombre VARCHAR(100),
+    apellido VARCHAR(100),
+    DNI int ,
+    email_personal VARCHAR(100),
+    teléfono_de_contacto char (10),
+    CVU_CBU VARCHAR(100),
+    boleano bit
+	);
 
---Majo
+	 -- Importar archivo CSV
+	 DECLARE @Sql NVARCHAR(MAX);
+	 SET @Sql = '
+		BULK INSERT #TempDatos 
+		FROM ''' + @RutaArchivo + '''
+		WITH (
+		FIELDTERMINATOR = '','',
+		ROWTERMINATOR = ''\n'',
+		 FIRSTROW = 2
+		);';
+
+	EXEC(@Sql);
+
+	-- insertamos inquilinos 1
+	INSERT INTO tp.inquilino(Nombres,apellido,DNI_Inquilino,CorreoElectronico,telefono,CVU_CBU,boleano)
+    SELECT nombre,apellido,dni,email_personal,teléfono_de_contacto,CVU_CBU,boleano
+    FROM (  SELECT nombre, apellido, dni, email_personal, teléfono_de_contacto, CVU_CBU, boleano,
+		    ROW_NUMBER() OVER (PARTITION BY dni ORDER BY dni) AS primero  -- elige el primero
+			FROM #TempDatos
+		    WHERE boleano = 1
+		  ) sub
+	where sub.primero=1 AND NOT EXISTS (SELECT 1 FROM tp.Inquilino i WHERE i.DNI_inquilino = sub.DNI);
+
+	-- insertamos propietarios 0
+	INSERT INTO tp.Propietario(Nombres,apellido,DNI_Propietario,CorreoElectronico,telefono,CVU_CBU,boleano)
+    SELECT nombre,apellido,dni,email_personal,teléfono_de_contacto,CVU_CBU,boleano
+    FROM (   SELECT 
+			 nombre, apellido, dni, email_personal, teléfono_de_contacto, CVU_CBU, boleano,
+			 ROW_NUMBER() OVER (PARTITION BY dni ORDER BY dni) AS primero  -- elige el primero
+			 FROM #TempDatos
+			 WHERE boleano = 0
+		 ) sub
+	where sub.primero=1 AND NOT EXISTS (SELECT 1 FROM tp.propietario i WHERE i.DNI_propietario = sub.DNI);
+
+	DROP TABLE #TempDatos;
+
+end
+go
+
+select * from tp.Inquilino
+select * from tp.Propietario
+
+delete from tp.inquilino
+delete from tp.propietario
