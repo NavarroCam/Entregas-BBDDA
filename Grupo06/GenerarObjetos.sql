@@ -1,3 +1,4 @@
+
 IF NOT EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name='Com5600G06') 
 BEGIN
 CREATE DATABASE Com5600G06
@@ -132,8 +133,6 @@ CREATE TABLE tp.Inquilino (
 END
 go
 
-
-
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
 TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Expensa')
 BEGIN
@@ -144,10 +143,10 @@ CREATE TABLE tp.Expensa (
   TotalAPagar DECIMAL(8,4) NOT NULL, --CALCULAR CON SP
   PrimerFechaVencimiento SMALLDATETIME NOT NULL,
   SegundaFechaVencimiento SMALLDATETIME NOT NULL,
-  ID_Consorcio INT NOT NULL,
+  ID_UF INT NOT NULL,
   DNI_Propietario INT NOT NULL,
   DNI_Inquilino INT NOT NULL,
-  CONSTRAINT FK_EX_Consorcio FOREIGN KEY (ID_Consorcio) REFERENCES tp.Consorcio(ID_Consorcio),
+  CONSTRAINT FK_EX_ID_UF FOREIGN KEY (ID_UF) REFERENCES tp.UnidadFuncional(ID_UF),
   CONSTRAINT FK_EX_Propietario FOREIGN KEY (DNI_Propietario) REFERENCES tp.Propietario(DNI_Propietario),
   CONSTRAINT FK_EX_Inquilino FOREIGN KEY (DNI_Inquilino) REFERENCES tp.Inquilino(DNI_Inquilino)
 );

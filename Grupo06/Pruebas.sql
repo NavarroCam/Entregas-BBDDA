@@ -106,70 +106,6 @@ BEGIN
 END
 GO
 
-ALTER PROCEDURE tp.sp_ImportarPropietariosInquilinos
-@RutaArchivo NVARCHAR(260)
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    -- Tabla temporal para datos crudos
-    CREATE TABLE #TempDatos (
-        Nombre VARCHAR(100),
-        Apellido VARCHAR(100),
-        DNI VARCHAR(20),
-        Email VARCHAR(100),
-        Telefono VARCHAR(20),
-        CVU_CBU VARCHAR(50),
-        Inquilino BIT
-    );
-
-    -- Cargar CSV
-    DECLARE @sql NVARCHAR(MAX) = '
-        BULK INSERT #TempDatos
-        FROM ''' + @RutaArchivo + '''
-        WITH (
-           FIELDTERMINATOR = '','',
-           ROWTERMINATOR = ''\r\n'',
-           FIRSTROW = 2,
-           CODEPAGE = ''65001'',
-           TABLOCK
-        );';
-    EXEC sp_executesql @sql;
-
-    -- Insertar Propietarios
-    INSERT INTO tp.Propietario (DNI_Propietario, Apellido, Nombres, CorreoElectronico, Telefono, CVU_CBU)
-    SELECT
-        CAST(DNI AS INT),
-        LTRIM(RTRIM(Apellido)),
-        LTRIM(RTRIM(Nombre)),
-        LTRIM(RTRIM(Email)),
-        RIGHT('0000000000' + Telefono, 10),
-        LEFT(REPLACE(REPLACE(CVU_CBU, ',', ''), 'E+021', ''), 22)
-    FROM #TempDatos
-    WHERE Inquilino = 0
-      AND NOT EXISTS (SELECT 1 FROM tp.Propietario p WHERE p.DNI_Propietario = #TempDatos.DNI);
-
-    -- Insertar Inquilinos
-    INSERT INTO tp.Inquilino (DNI_Inquilino, Apellido, Nombres, CorreoElectronico, Telefono, CVU_CBU)
-    SELECT
-        CAST(DNI AS INT),
-        LTRIM(RTRIM(Apellido)),
-        LTRIM(RTRIM(Nombre)),
-        LTRIM(RTRIM(Email)),
-        RIGHT('0000000000' + Telefono, 10),
-        LEFT(REPLACE(REPLACE(CVU_CBU, ',', ''), 'E+021', ''), 22)
-    FROM #TempDatos
-    WHERE Inquilino = 1
-      AND NOT EXISTS (SELECT 1 FROM tp.Inquilino i WHERE i.DNI_Inquilino = #TempDatos.DNI);
-
-    DROP TABLE #TempDatos;
-END;
-GO
-
---######################################################################################################################################################################
-
-EXEC tp.sp_ImportarPropietariosInquilinos 'C:\Users\Administrator\Desktop\TP_Base_de_datos_aplicada\Grupo06\consorcios\Inquilino-propietarios-datos.csv'
-
 create or ALTER PROCEDURE tp.sp_ImportarPropietariosInquilinos
 @RutaArchivo NVARCHAR(260)
 AS
@@ -226,6 +162,10 @@ BEGIN
 
 end
 go
+
+
+EXEC tp.sp_ImportarPropietariosInquilinos 'C:\Users\ecgam\Documents\GuadalupeUnlam\BaseDeDatosAplicadas\TP_BaseDeDatosAplicadas\Grupo06\consorcios\Inquilino-propietarios-datos.csv'
+
 
 select * from tp.Inquilino
 select * from tp.Propietario
