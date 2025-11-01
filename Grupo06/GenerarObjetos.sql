@@ -72,7 +72,7 @@ CREATE TABLE tp.Propietario (
   Nombres VARCHAR(30) NOT NULL,
   CorreoElectronico VARCHAR(50) NOT NULL,
   Telefono CHAR(10) NOT NULL CHECK (telefono LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
-  CVU_CBU varchar(100) NOT NULL,
+  CVU_CBU varchar(22) NOT NULL,
   boleano bit
 );
 END
@@ -128,11 +128,12 @@ CREATE TABLE tp.Inquilino (
   Nombres VARCHAR(30) NOT NULL,
   CorreoElectronico VARCHAR(50) NOT NULL,
   Telefono CHAR(10) NOT NULL CHECK (telefono LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
-  CVU_CBU varchar (100) NOT NULL,
-  boleano bit
+  CVU_CBU varchar (22) NOT NULL,
+  boleano bit,
 );
 END
 go
+
 
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE

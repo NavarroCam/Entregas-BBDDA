@@ -170,7 +170,7 @@ GO
 
 EXEC tp.sp_ImportarPropietariosInquilinos 'C:\Users\Administrator\Desktop\TP_Base_de_datos_aplicada\Grupo06\consorcios\Inquilino-propietarios-datos.csv'
 
-ALTER PROCEDURE tp.sp_ImportarPropietariosInquilinos
+create or ALTER PROCEDURE tp.sp_ImportarPropietariosInquilinos
 @RutaArchivo NVARCHAR(260)
 AS
 BEGIN
@@ -182,7 +182,7 @@ BEGIN
     DNI int ,
     email_personal VARCHAR(100),
     teléfono_de_contacto char (10),
-    CVU_CBU VARCHAR(100),
+    CVU_CBU varchar(22),
     boleano bit
 	);
 
@@ -199,9 +199,10 @@ BEGIN
 
 	EXEC(@Sql);
 
+
 	-- insertamos inquilinos 1
-	INSERT INTO tp.inquilino(Nombres,apellido,DNI_Inquilino,CorreoElectronico,telefono,CVU_CBU,boleano)
-    SELECT nombre,apellido,dni,email_personal,teléfono_de_contacto,CVU_CBU,boleano
+	INSERT INTO tp.inquilino(Nombres,apellido,DNI_Inquilino,CorreoElectronico,telefono,CVU_CBU)
+    SELECT 	LTRIM(sub.Nombre),LTRIM(sub.Apellido),sub.DNI,LTRIM(sub.Email_Personal),LTRIM(sub.Teléfono_De_Contacto),sub.CVU_CBU -- ltrim saca espacios de la izquierda
     FROM (  SELECT nombre, apellido, dni, email_personal, teléfono_de_contacto, CVU_CBU, boleano,
 		    ROW_NUMBER() OVER (PARTITION BY dni ORDER BY dni) AS primero  -- elige el primero
 			FROM #TempDatos
@@ -210,14 +211,13 @@ BEGIN
 	where sub.primero=1 AND NOT EXISTS (SELECT 1 FROM tp.Inquilino i WHERE i.DNI_inquilino = sub.DNI);
 
 	-- insertamos propietarios 0
-	INSERT INTO tp.Propietario(Nombres,apellido,DNI_Propietario,CorreoElectronico,telefono,CVU_CBU,boleano)
-    SELECT nombre,apellido,dni,email_personal,teléfono_de_contacto,CVU_CBU,boleano
-    FROM (   SELECT 
-			 nombre, apellido, dni, email_personal, teléfono_de_contacto, CVU_CBU, boleano,
+	INSERT INTO tp.Propietario(Nombres,apellido,DNI_Propietario,CorreoElectronico,telefono,CVU_CBU)
+    SELECT 	LTRIM(sub.Nombre),LTRIM(sub.Apellido),sub.DNI,LTRIM(sub.Email_Personal),LTRIM(sub.Teléfono_De_Contacto),sub.CVU_CBU -- ltrim saca espacios de la izquierda
+    FROM (   SELECT nombre, apellido, dni, email_personal, teléfono_de_contacto, CVU_CBU, boleano,
 			 ROW_NUMBER() OVER (PARTITION BY dni ORDER BY dni) AS primero  -- elige el primero
 			 FROM #TempDatos
 			 WHERE boleano = 0
-		 ) sub
+		 ) sub --- la sub sirve para que no inserte duplicados del archivo csv 
 	where sub.primero=1 AND NOT EXISTS (SELECT 1 FROM tp.propietario i WHERE i.DNI_propietario = sub.DNI);
 
 	DROP TABLE #TempDatos;
