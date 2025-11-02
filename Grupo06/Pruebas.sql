@@ -73,33 +73,52 @@ CREATE OR ALTER PROCEDURE tp.ImportarConsorcio_01
 @RutaArchivo NVARCHAR(260)
 AS
 BEGIN
+
     SET NOCOUNT ON;
 
-	DECLARE @ID_Administracion INT;
-
-    -- Obtener el ID_Administracion desde la tabla real
-    SELECT TOP 1 @ID_Administracion = ID_Administracion
-    FROM tp.Administracion;
-
-    CREATE TABLE #tmp_Consorcio (
+    -- Tabla temporal para staging
+    CREATE TABLE #ConsorcioTemp (
+        ID_Consorcio VARCHAR(15),
         Nombre VARCHAR(30),
         Direccion VARCHAR(50),
         CantUF INT,
-        SuperficieTotal DECIMAL(8,2),
-        ID_Administracion INT
+        SuperficieTotal DECIMAL(8,2)
     );
 
-	DECLARE @SQL NVARCHAR(MAX);
-	SET @SQL = N'
+	 -- Importar archivo CSV
+	 DECLARE @Sql NVARCHAR(MAX);
+	 SET @Sql = '
+		BULK INSERT #ConsorcioTemp
+		FROM ''' + @RutaArchivo + '''
+		WITH (
+		FIELDTERMINATOR = '';'',
+		ROWTERMINATOR = ''\n'',
+		 FIRSTROW = 2
+		);';
+
+	EXEC(@Sql);
+
+	SELECT * FROM #ConsorcioTemp
+
+    -- Obtener ID_Administracion (ejemplo: el primero disponible)
+    DECLARE @ID_Administracion INT;
+    SELECT TOP 1 @ID_Administracion = ID_Administracion FROM tp.Administracion;
+
+    -- Insertar evitando duplicados
+    INSERT INTO tp.Consorcio (ID_Consorcio, Nombre, Direccion, CantUF, SuperficieTotal, ID_Administracion)
+    SELECT t.ID_Consorcio, t.Nombre, t.Direccion, t.CantUF, t.SuperficieTotal, @ID_Administracion
+    FROM #ConsorcioTemp t
+    /*WHERE NOT EXISTS (
+        SELECT 1 FROM tp.Consorcio c WHERE c.Nombre = t.Nombre
+    );
+	*/
+
+END;
+GO
 
 
 
-
-
-
-
-
-EXEC tp.ImportarConsorcio_01
+EXEC tp.ImportarConsorcio_01 'C:\Users\ecgam\Documents\GuadalupeUnlam\BaseDeDatosAplicadas\TP_BaseDeDatosAplicadas\Grupo06\consorcios\datos varios.csv'
 
 SELECT * FROM tp.Consorcio
 
