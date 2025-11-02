@@ -33,19 +33,9 @@ EXEC tp.SP_CalcularInteresesYDeuda;
 
 
 
--- Lu (~-~)
--- jaure UWU :3 
--- Javi
 
-
-
---Guada
-
-
-----------------------------------------SP IMPORTACION DE DATOS TABLA ADMINISTRACION------------------------------
-
-
---ESTO IRIA EN LA CONSULTA DE "GenerarObjetos.sql"
+-- PASO 1#### GENERAR DATOS ADMINISTRACION ###### SP IMPORTACION DE DATOS TABLA ADMINISTRACION
+--ESTO IRIA EN LA CONSULTA DE "GenerarObjetos.sql" 
 
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
@@ -55,13 +45,15 @@ BEGIN
 END
 GO
 
-CREATE OR ALTER PROCEDURE tp.ImportarAdministracion
+use  Com5600G06
+
+CREATE OR ALTER PROCEDURE TP.GENERAR_ADMINISTRACION
 AS
 BEGIN
 
     SET NOCOUNT ON; --NO MUESTRA LAS FILAS AFECTADAS. MEJORA EL RENDIMIENTO
 
-    DECLARE @Cantidad INT = FLOOR(RAND() * 8) + 3; --NUMERO ALEATORIO ENTRE 3 Y 10
+    DECLARE @Cantidad INT = 10 --NUMERO ALEATORIO ENTRE 3 Y 10
 
 
     INSERT INTO tp.Administracion (Nombre, Direccion, CorreoElectronico, Telefono)
@@ -85,19 +77,165 @@ BEGIN
         SELECT 1 FROM tp.Administracion a WHERE a.Nombre = Datos.Nombre --EVITA DATOS DUPLICADOS
     )
     ORDER BY NEWID(); --PERMITE ALEATORIEDAD
+	--- DEBEMOS INSERTAR EL NOMBRE PRINCIPAL DE NUESTRA EMPRESA EN UN REGISTRO, ESTE REGISTRO SERA ESPECIFICO
+	INSERT INTO tp.Administracion (Nombre, Direccion, CorreoElectronico, Telefono)
+	VALUES   ('ADMINISTRACION DE CONSORCIOS ALTOS DE SAINT JUST', 'FLORENCIO VARELA 1900', 'SAINT.JUST@email.com', '1157736960')
+END;
+GO
+
+EXEC TP.GENERAR_ADMINISTRACION
+
+SELECT * FROM TP.Administracion
+
+--PASO 2 ##### GENERAR DATOS PARA ESTADO FINANCIERO PARA QUE EL CONSORCIO TENGA UN ID DE ESTADO FINANCIERO QUE HEREDAR
+
+CREATE or ALTER TRIGGER tp.tr_CalcularSaldoAlCierre
+ON tp.EstadoFinanciero
+AFTER INSERT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    UPDATE EF
+    SET EF.SaldoAlCierre =  EF.SaldoAnterior  + EF.IngresoPagoEnTermino + EF.IngresoPagoAdeudado  + EF.IngresoPagoAdelantado  - EF.EgresoGastoMensual
+    FROM tp.EstadoFinanciero EF
+    INNER JOIN inserted i ON EF.ID_EF = i.ID_EF;
+
+END;
+GO
+
+CREATE OR ALTER PROCEDURE TP.GENERAR_ESTADO_FINANCIERO --- se forma men
+AS
+BEGIN
+	INSERT INTO tp.EstadoFinanciero (ID_EF,SaldoAnterior, IngresoPagoEnTermino, IngresoPagoAdeudado, IngresoPagoAdelantado, EgresoGastoMensual)
+	VALUES
+	(1,15000.00, 3000.00, 500.00, 0.00, 2500.00),
+	(2,20000.00, 2500.00, 1200.00, 300.00, 2800.00),
+	(3,12000.00, 4000.00, 800.00, 100.00, 3100.00),
+	(4,18000.00, 3500.00, 600.00, 400.00, 2900.00),
+	(5,10000.00, 5000.00, 1500.00, 200.00, 4200.00);
+
+END
+go
+
+exec TP.GENERAR_ESTADO_FINANCIERO 
+
+SELECT * FROM tp.EstadoFinanciero;
+
+--PASO 3 ##### GENERAR DATOS CONSORCIO PARA QUE LA UNIDAD FUNCIONAL TENGA NOMBRE QUE HEREDAR DEBIDO A QUE ESTE TIENE UNA CLAVE COMPUESTA PRIMARIA
+--############ PERO DESPUES HABRIA QUE CALCULAR LA SUPERFICIE TOTAL EN CONSORCIO CON OTRO STORE PROCEDURE MAS ADELANTE SON SOLO 5 CONSORCIOS
+--############ ESTO IRIA EN LA CONSULTA DE "InsertarDatos.sql"
+
+CREATE OR ALTER PROCEDURE TP.GENERAR_CONSORCIO
+AS
+BEGIN
+	INSERT INTO tp.Consorcio (Nombre, Direccion, SuperficieTotal, ID_Administracion, ID_EF)
+	VALUES 
+	('Azcuenaga', 'Dirección Azcuenaga', NULL,11,1),
+	('Alzaga', 'Dirección Alzaga', NULL,11, 2),
+	('Alberdi', 'Dirección Alberdi', NULL,11,3),
+	('Unzue', 'Dirección Unzue', NULL,11,4),
+	('Pereyra Iraola', 'Dirección Pereyra Iraola', NULL,11,5);
+END
+
+EXEC TP.GENERAR_CONSORCIO
+
+SELECT * FROM TP.Consorcio C
+INNER JOIN TP.Administracion A ON A.ID_Administracion=C.ID_Administracion
+
+--PASO 4 ##### DEBIDO A QUE EN UN MOMENTO VAMOS A CARGAR LAS UNIDADES FUNCIONALES DEBERIAMOS DE TENER UN 
+--		#### TRIGGER QUE CALCULE LA SUPP TOTAL DE LOS CONSORCIOS
+
+CREATE OR ALTER TRIGGER TR_CALCULAR_SUPERFICIE_TOTAL_CONSORCIO
+ON tp.UnidadFuncional
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Actualiza la superficie total de los consorcios involucrados
+    UPDATE c
+    SET c.SuperficieTotal = sub.TotalSuperficie
+    FROM tp.Consorcio c
+    INNER JOIN (
+        SELECT NombreConsorcio,SUM(ISNULL(M2_Unidad,0) + ISNULL(M2_BAULERA,0) + ISNULL(M2_COCHERA,0)) AS TotalSuperficie
+        FROM tp.UnidadFuncional
+        GROUP BY NombreConsorcio
+    ) AS sub
+    ON c.Nombre = sub.NombreConsorcio;
+
 END;
 GO
 
 
---ESTO IRIA EN LA CONSULTA DE "InsertarDatos.sql"
+--PASO 5 ############## SP DE IMPORTACION DE UNIDAD FUNCIONAL TXT 
 
-EXEC tp.ImportarAdministracion
+IF NOT EXISTS (
+    SELECT * FROM sys.objects 
+    WHERE object_id = OBJECT_ID(N'TP.SP_IMPORTAR_UNIDAD_FUNCIONAL_POR_CONSORCIO ') AND type = 'P')
+BEGIN
+    EXEC('CREATE PROCEDURE TP.SP_IMPORTAR_UNIDAD_FUNCIONAL_POR_CONSORCIO AS BEGIN SET NOCOUNT ON; END')
+END
+GO
 
 
+CREATE OR ALTER PROCEDURE TP.SP_IMPORTAR_UNIDAD_FUNCIONAL_POR_CONSORCIO 
+@RutaArchivo NVARCHAR(260)
+AS
+BEGIN
+	SET NOCOUNT ON;
 
--------SP IMPORTACION DE DATOS TABLA PROPIETARIOS E INQUILINOS-------------------------------------------------------------------
+	CREATE TABLE #TEMP (
+		 NombreConsorcio VARCHAR(30),
+		 NUM_UNIDAD_FUNCIONAL INT,
+		 PISO VARCHAR(10),
+		 DEPARTAMENTO CHAR(3),
+		 COEFICIENTE VARCHAR(5),
+		 M2_UNIDAD_FUNCIONAL VARCHAR(10),
+		 BAULERA VARCHAR(5),
+		 COCHERA VARCHAR(5),
+		 M2_BAULERA VARCHAR(10),
+		 M2_COCHERA VARCHAR(10));
+	
+		DECLARE @Sql NVARCHAR(MAX);
+
+		SET @Sql = '
+		BULK INSERT #Temp
+		FROM ''' + @RutaArchivo + '''
+		WITH (
+		FIELDTERMINATOR = ''\t'',  -- tabulador
+		ROWTERMINATOR = ''\n'',
+		FIRSTROW = 2,            -- salta encabezado
+		CODEPAGE = ''65001''  );'; -- UTF-8
+		
+		
+		EXEC(@Sql);
+
+		INSERT INTO tp.UnidadFuncional ( ID_UF, NombreConsorcio, Piso, Departamento, PorcentajeProrrateo, M2_Unidad, Baulera, Cochera, M2_Baulera, M2_Cochera)
+		SELECT NUM_UNIDAD_FUNCIONAL, NombreConsorcio,PISO,DEPARTAMENTO, 
+		 CAST(REPLACE(COEFICIENTE, ',', '.') AS DECIMAL(5,2)) ,
+		M2_UNIDAD_FUNCIONAL,BAULERA,COCHERA,
+		CAST(M2_BAULERA AS INT),
+		CAST(M2_COCHERA AS INT)
+		FROM (
+				SELECT *,
+				ROW_NUMBER() OVER(PARTITION BY NUM_UNIDAD_FUNCIONAL,NombreConsorcio ORDER BY NUM_UNIDAD_FUNCIONAL) AS PRIMERO
+				FROM #Temp
+				WHERE NUM_UNIDAD_FUNCIONAL IS NOT NULL) SUB
+		WHERE SUB.PRIMERO = 1;
+
+		DROP TABLE #TEMP
+
+END
+   
+
+EXEC  TP.SP_IMPORTAR_UNIDAD_FUNCIONAL_POR_CONSORCIO 'C:\Users\Administrator\Desktop\TP_Base_de_datos_aplicada\Grupo06\consorcios\UF por consorcio.TXT'
+
+SELECT * FROM TP.UnidadFuncional
+ORDER BY NombreConsorcio
 
 
+--PASO 6 #### SP IMPORTACION DE DATOS TABLA PROPIETARIOS E INQUILINOS
 
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
@@ -151,7 +289,7 @@ BEGIN
 	-- insertamos propietarios 0
 	INSERT INTO tp.Propietario(Nombres,apellido,DNI_Propietario,CorreoElectronico,telefono,CVU_CBU)
     SELECT 	LTRIM(sub.Nombre),LTRIM(sub.Apellido),sub.DNI,LTRIM(sub.Email_Personal),LTRIM(sub.Teléfono_De_Contacto),
-			CAST(CAST(cvu_cbu AS FLOAT) AS DECIMAL(38,0))-- ltrim saca espacios de la izquierda              ##############################################################
+			CAST(CAST(cvu_cbu AS FLOAT) AS DECIMAL(38,0))-- ltrim saca espacios de la izquierda           #########################################################
     FROM (   SELECT nombre, apellido, dni, email_personal, teléfono_de_contacto, CVU_CBU, boleano,
 			 ROW_NUMBER() OVER (PARTITION BY dni ORDER BY dni) AS primero  -- elige el primero
 			 FROM #TempDatos
@@ -175,15 +313,7 @@ select * from tp.Propietario
 delete from tp.inquilino
 delete from tp.propietario
 
----SP IMPORTACION DE DATOS INQUILINOS PROPIETARIOS-----------------------------------------------------------------------------------------
-
-IF NOT EXISTS (
-    SELECT * FROM sys.objects 
-    WHERE object_id = OBJECT_ID(N'tp.sp_ImportarPropietariosInquilinos') AND type = 'P')
-BEGIN
-    EXEC('CREATE PROCEDURE tp.sp_ImportarPropietariosInquilinos AS BEGIN SET NOCOUNT ON; END')
-END
-GO
+--PASO 7 ####### SP IMPORTACION DE DNI PROPIETARIO A UNIDAD FUNCIONAL
 
 create or ALTER PROCEDURE tp.sp_ImportarPropietariosInquilinosUnidadFuncional
 @RutaArchivo NVARCHAR(260)
@@ -228,5 +358,4 @@ EXEC tp.sp_ImportarPropietariosInquilinosUnidadFuncional 'C:\Users\Administrator
 
 SELECT * FROM TP. UNIDADFUNCIONAL
 
-SELECT * FROM TP. UNIDADFUNCIONAL
-
+-- PASO 8 ##### 

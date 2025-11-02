@@ -33,9 +33,9 @@ BEGIN
 
 CREATE TABLE tp.Administracion (
  ID_Administracion INT IDENTITY(1,1) PRIMARY KEY,
- Nombre VARCHAR(30) NOT NULL UNIQUE,
- Direccion VARCHAR(30) NOT NULL,
- CorreoElectronico VARCHAR(30) NOT NULL,
+ Nombre VARCHAR(50) NOT NULL UNIQUE,
+ Direccion VARCHAR(50) NOT NULL,
+ CorreoElectronico VARCHAR(50) NOT NULL,
  Telefono CHAR(10) NOT NULL CHECK (telefono LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]') 
 );
 END
@@ -47,13 +47,13 @@ TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'EstadoFinanciero')
 BEGIN
 
 CREATE TABLE tp.EstadoFinanciero (
- ID_EF INT IDENTITY(1,1) PRIMARY KEY,
+ ID_EF INT PRIMARY KEY,
  SaldoAnterior DECIMAL(8,2) NOT NULL CHECK(SaldoAnterior >= 0),
  IngresoPagoEnTermino DECIMAL(8,2) NOT NULL CHECK(IngresoPagoEnTermino >= 0),
  IngresoPagoAdeudado DECIMAL(8,2)  NOT NULL CHECK(IngresoPagoAdeudado>= 0),
  IngresoPagoAdelantado DECIMAL(8,2)  NOT NULL CHECK(IngresoPagoAdelantado >= 0),
  EgresoGastoMensual DECIMAL(8,2) NOT NULL CHECK(EgresoGastoMensual >= 0),
- SaldoAlCierre DECIMAL(8,2) NOT NULL --VER COMO SE CALCULA (SP, TRIGGER, ETC.)
+ SaldoAlCierre DECIMAL(8,2) NULL --VER COMO SE CALCULA (SP, TRIGGER, ETC.)
 );
 END
 go
@@ -66,7 +66,7 @@ BEGIN
 CREATE TABLE tp.Consorcio (
   Nombre VARCHAR(30) primary key,
   Direccion VARCHAR(30) NOT NULL,
-  SuperficieTotal DECIMAL(8,2) NOT NULL,
+  SuperficieTotal DECIMAL(8,2) NULL,
   ID_Administracion INT NOT NULL,
   ID_EF INT NOT NULL,
   CONSTRAINT FK_Administracion FOREIGN KEY (ID_Administracion) REFERENCES tp.Administracion(ID_Administracion),
@@ -116,12 +116,16 @@ BEGIN
 CREATE TABLE tp.UnidadFuncional (
   ID_UF INT,
   NombreConsorcio VARCHAR(30),
-  Piso INT NOT NULL,
-  Departamento CHAR(3) NOT NULL,
+  Piso VARCHAR(2) NOT NULL,
+  Departamento VARCHAR(3) NOT NULL,
+  PorcentajeProrrateo DECIMAL (5,4) NOT NULL, --CALCULAR CON SP --- coeficiente del TXT?????
   M2_Unidad DECIMAL(4,2) NULL,
-  PorcentajeProrrateo DECIMAL (5,4) NOT NULL, --CALCULAR CON SP
-  DNI_Propietario INT NOT NULL,
-  ID_EstadodeCuenta INT NOT NULL,
+  BAULERA CHAR(2) NOT NULL,
+  COCHERA CHAR(2) NOT NULL,
+  M2_BAULERA INT NOT NULL CHECK (M2_BAULERA>=0),
+  M2_COCHERA INT NOT NULL CHECK (M2_COCHERA>=0),
+  DNI_Propietario INT NULL,
+  ID_EstadodeCuenta INT NULL,
   CONSTRAINT PK_UNIDAD_FUNCIONAL PRIMARY KEY (ID_UF,NombreConsorcio),
   CONSTRAINT FK_UF_Consorcio FOREIGN KEY (NombreConsorcio) REFERENCES tp.Consorcio(Nombre),
   CONSTRAINT FK_UF_Propietario FOREIGN KEY (DNI_Propietario) REFERENCES tp.Propietario(DNI_Propietario),
@@ -313,13 +317,12 @@ TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Pago')
 
 BEGIN
 CREATE TABLE tp.Pago (
-  ID_Pago INT IDENTITY (1,1) PRIMARY KEY,
+  ID_Pago INT PRIMARY KEY,
   Importe DECIMAL (8,2) NOT NULL,
   Estado VARCHAR (15) NOT NULL CHECK (Estado IN ('Pagado', 'No Pagado')),
   ID_Expensa INT NOT NULL,
   CONSTRAINT FK_P_Expensa FOREIGN KEY (ID_Expensa) REFERENCES tp.Expensa(ID_Expensa)
 );
-
 END
 go
 
