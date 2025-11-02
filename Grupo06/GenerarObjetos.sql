@@ -1,3 +1,5 @@
+USE MASTER
+
 IF EXISTS (SELECT name FROM sys.databases WHERE name = 'Com5600G06')
 BEGIN
    
@@ -42,38 +44,43 @@ END
 go
 
 
-IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
-TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'EstadoFinanciero')
-BEGIN
-
-CREATE TABLE tp.EstadoFinanciero (
- ID_EF INT PRIMARY KEY,
- SaldoAnterior DECIMAL(8,2) NOT NULL CHECK(SaldoAnterior >= 0),
- IngresoPagoEnTermino DECIMAL(8,2) NOT NULL CHECK(IngresoPagoEnTermino >= 0),
- IngresoPagoAdeudado DECIMAL(8,2)  NOT NULL CHECK(IngresoPagoAdeudado>= 0),
- IngresoPagoAdelantado DECIMAL(8,2)  NOT NULL CHECK(IngresoPagoAdelantado >= 0),
- EgresoGastoMensual DECIMAL(8,2) NOT NULL CHECK(EgresoGastoMensual >= 0),
- SaldoAlCierre DECIMAL(8,2) NULL --VER COMO SE CALCULA (SP, TRIGGER, ETC.)
-);
-END
-go
-
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
 TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Consorcio')
 BEGIN
 
 CREATE TABLE tp.Consorcio (
+  ID_Consorcio VARCHAR (15),
   Nombre VARCHAR(30) primary key,
-  Direccion VARCHAR(30) NOT NULL,
+  Direccion VARCHAR(50) NOT NULL,
+  CantUF INT NOT NULL,
   SuperficieTotal DECIMAL(8,2) NULL,
   ID_Administracion INT NOT NULL,
-  ID_EF INT NOT NULL,
-  CONSTRAINT FK_Administracion FOREIGN KEY (ID_Administracion) REFERENCES tp.Administracion(ID_Administracion),
-  CONSTRAINT FK_EstadoFinanciero FOREIGN KEY (ID_EF) REFERENCES tp.EstadoFinanciero(ID_EF)
+  CONSTRAINT FK_Administracion FOREIGN KEY (ID_Administracion) REFERENCES tp.Administracion(ID_Administracion)
 );
 END
 go
+
+
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
+TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'EstadoFinanciero')
+BEGIN
+
+CREATE TABLE tp.EstadoFinanciero (
+ ID_EF INT PRIMARY KEY,
+ Fecha SMALLDATETIME NOT NULL, --
+ SaldoAnterior DECIMAL(8,2) NOT NULL CHECK(SaldoAnterior >= 0),
+ IngresoPagoEnTermino DECIMAL(8,2) NOT NULL CHECK(IngresoPagoEnTermino >= 0),
+ IngresoPagoAdeudado DECIMAL(8,2)  NOT NULL CHECK(IngresoPagoAdeudado>= 0),
+ IngresoPagoAdelantado DECIMAL(8,2)  NOT NULL CHECK(IngresoPagoAdelantado >= 0),
+ EgresoGastoMensual DECIMAL(8,2) NOT NULL CHECK(EgresoGastoMensual >= 0),
+ SaldoAlCierre DECIMAL(8,2) NULL, --VER COMO SE CALCULA (SP, TRIGGER, ETC.)
+ NombreConsorcio VARCHAR(30) NOT NULL,
+ CONSTRAINT FK_Consorcio FOREIGN KEY (NombreConsorcio) REFERENCES tp.Consorcio(Nombre)
+);
+END
+go
+
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
 TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Propietario')
@@ -318,6 +325,7 @@ TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Pago')
 BEGIN
 CREATE TABLE tp.Pago (
   ID_Pago INT PRIMARY KEY,
+  --Fecha_Pago SMALLDATETIME NOT NULL,
   Importe DECIMAL (8,2) NOT NULL,
   Estado VARCHAR (15) NOT NULL CHECK (Estado IN ('Pagado', 'No Pagado')),
   ID_Expensa INT NOT NULL,

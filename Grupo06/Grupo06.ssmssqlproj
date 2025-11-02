@@ -3,6 +3,21 @@
   <Items>
     <LogicalFolder Name="Conexiones" Type="2" Sorted="true">
       <Items>
+        <ConnectionNode Name="CAM-PC\SQLEXPRESS:CAM-PC\Camila Navarro">
+          <Created>2025-11-02T15:24:06.1852578-03:00</Created>
+          <Type>SQL</Type>
+          <Server>CAM-PC\SQLEXPRESS</Server>
+          <UserName />
+          <Authentication>Autenticación de Windows</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <TrustServerCertificate>True</TrustServerCertificate>
+          <HostNameInServerCertificate />
+          <EncryptionOption>True</EncryptionOption>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Consulta</ApplicationName>
+        </ConnectionNode>
         <ConnectionNode Name="CAM-PC\SQLEXPRESS01:">
           <Created>2025-10-26T16:55:08.1712424-03:00</Created>
           <Type>SQL</Type>
@@ -18,7 +33,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Consulta</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="DESKTOP-JKOJ5PF\SQLEXPRESS02:DESKTOP-JKOJ5PF\ecgam">
+        <ConnectionNode Name="DESKTOP-JKOJ5PF\SQLEXPRESS02:CAM-PC\Camila Navarro">
           <Created>2025-10-30T17:36:47.8684992-03:00</Created>
           <Type>SQL</Type>
           <Server>DESKTOP-JKOJ5PF\SQLEXPRESS02</Server>
@@ -53,8 +68,8 @@
     <LogicalFolder Name="Consultas" Type="0" Sorted="true">
       <Items>
         <FileNode Name="GenerarObjetos.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:CAM-PC\SQLEXPRESS:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>CAM-PC\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>GenerarObjetos.sql</FullPath>
         </FileNode>
@@ -65,8 +80,8 @@
           <FullPath>InsertarDatos.sql</FullPath>
         </FileNode>
         <FileNode Name="Pruebas.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:CAM-PC\SQLEXPRESS:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>CAM-PC\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>Pruebas.sql</FullPath>
         </FileNode>

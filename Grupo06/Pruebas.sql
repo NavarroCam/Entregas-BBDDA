@@ -36,60 +36,79 @@ EXEC tp.SP_CalcularInteresesYDeuda;
 
 -- PASO 1#### GENERAR DATOS ADMINISTRACION ###### SP IMPORTACION DE DATOS TABLA ADMINISTRACION
 --ESTO IRIA EN LA CONSULTA DE "GenerarObjetos.sql" 
+use  Com5600G06
 
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
-    WHERE object_id = OBJECT_ID(N'tp.ImportarAdministracion') AND type = 'P')
+    WHERE object_id = OBJECT_ID(N'tp.ImportarAdministracion_00') AND type = 'P')
 BEGIN
-    EXEC('CREATE PROCEDURE tp.ImportarAdministracion AS BEGIN SET NOCOUNT ON; END') --SE NECESITA SQL DINAMICO PORQUE SQL NO PERMITE CREAR UN SP DENTRO DE UN BLOQUE CONDICIONAL DIRECTAMENTE
+    EXEC('CREATE PROCEDURE tp.ImportarAdministracion_00 AS BEGIN SET NOCOUNT ON; END') --SE NECESITA SQL DINAMICO PORQUE SQL NO PERMITE CREAR UN SP DENTRO DE UN BLOQUE CONDICIONAL DIRECTAMENTE
 END
 GO
 
-use  Com5600G06
-
-CREATE OR ALTER PROCEDURE TP.GENERAR_ADMINISTRACION
+CREATE OR ALTER PROCEDURE tp.ImportarAdministracion_00
 AS
 BEGIN
-
-    SET NOCOUNT ON; --NO MUESTRA LAS FILAS AFECTADAS. MEJORA EL RENDIMIENTO
-
-    DECLARE @Cantidad INT = 10 --NUMERO ALEATORIO ENTRE 3 Y 10
-
-
-    INSERT INTO tp.Administracion (Nombre, Direccion, CorreoElectronico, Telefono)
-    SELECT TOP (@Cantidad) * --SELECCIONA UN CANTIDAD ALEATORIA DE FILAS
-    FROM (
-        VALUES
-            ('Admin Uno', 'Calle 123', 'admin1@email.com', '1111111111'),
-            ('Admin Dos', 'Av. Siempre Viva', 'admin2@email.com', '2222222222'),
-            ('Admin Tres', 'Calle Falsa 456', 'admin3@email.com', '3333333333'),
-            ('Admin Cuatro', 'Diagonal 74', 'admin4@email.com', '4444444444'),
-            ('Admin Cinco', 'Ruta 8 KM 45', 'admin5@email.com', '5555555555'),
-            ('Admin Seis', 'Calle 9', 'admin6@email.com', '6666666666'),
-            ('Admin Siete', 'Av. Libertador', 'admin7@email.com', '7777777777'),
-            ('Admin Ocho', 'Calle 10', 'admin8@email.com', '8888888888'),
-            ('Admin Nueve', 'Calle 11', 'admin9@email.com', '9999999999'),
-            ('Admin Diez', 'Calle 12', 'admin10@email.com', '1010101010')
-
-    ) AS Datos (Nombre, Direccion, CorreoElectronico, Telefono)
-
-    WHERE NOT EXISTS (
-        SELECT 1 FROM tp.Administracion a WHERE a.Nombre = Datos.Nombre --EVITA DATOS DUPLICADOS
-    )
-    ORDER BY NEWID(); --PERMITE ALEATORIEDAD
-	--- DEBEMOS INSERTAR EL NOMBRE PRINCIPAL DE NUESTRA EMPRESA EN UN REGISTRO, ESTE REGISTRO SERA ESPECIFICO
 	INSERT INTO tp.Administracion (Nombre, Direccion, CorreoElectronico, Telefono)
 	VALUES   ('ADMINISTRACION DE CONSORCIOS ALTOS DE SAINT JUST', 'FLORENCIO VARELA 1900', 'SAINT.JUST@email.com', '1157736960')
 END;
 GO
 
-EXEC TP.GENERAR_ADMINISTRACION
+EXEC tp.ImportarAdministracion_00
 
-SELECT * FROM TP.Administracion
+SELECT * FROM tp.Administracion
 
---PASO 2 ##### GENERAR DATOS PARA ESTADO FINANCIERO PARA QUE EL CONSORCIO TENGA UN ID DE ESTADO FINANCIERO QUE HEREDAR
 
-CREATE or ALTER TRIGGER tp.tr_CalcularSaldoAlCierre
+
+--PASO 2 ##### IMPORTAR DATOS DEL CONSORCIO
+IF NOT EXISTS (
+    SELECT * FROM sys.objects 
+    WHERE object_id = OBJECT_ID(N'tp.ImportarConsorcio_01') AND type = 'P')
+BEGIN
+    EXEC('CREATE PROCEDURE tp.ImportarConsorcio_01 AS BEGIN SET NOCOUNT ON; END') --SE NECESITA SQL DINAMICO PORQUE SQL NO PERMITE CREAR UN SP DENTRO DE UN BLOQUE CONDICIONAL DIRECTAMENTE
+END
+GO
+
+CREATE OR ALTER PROCEDURE tp.ImportarConsorcio_01
+@RutaArchivo NVARCHAR(260)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+	DECLARE @ID_Administracion INT;
+
+    -- Obtener el ID_Administracion desde la tabla real
+    SELECT TOP 1 @ID_Administracion = ID_Administracion
+    FROM tp.Administracion;
+
+    CREATE TABLE #tmp_Consorcio (
+        Nombre VARCHAR(30),
+        Direccion VARCHAR(50),
+        CantUF INT,
+        SuperficieTotal DECIMAL(8,2),
+        ID_Administracion INT
+    );
+
+	DECLARE @SQL NVARCHAR(MAX);
+	SET @SQL = N'
+
+
+
+
+
+
+
+
+EXEC tp.ImportarConsorcio_01
+
+SELECT * FROM tp.Consorcio
+
+
+
+
+
+
+/*CREATE or ALTER TRIGGER tp.tr_CalcularSaldoAlCierre
 ON tp.EstadoFinanciero
 AFTER INSERT
 AS
@@ -116,7 +135,7 @@ BEGIN
 	(5,10000.00, 5000.00, 1500.00, 200.00, 4200.00);
 
 END
-go
+go*/
 
 exec TP.GENERAR_ESTADO_FINANCIERO 
 
