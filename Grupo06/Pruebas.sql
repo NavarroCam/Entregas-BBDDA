@@ -33,9 +33,9 @@ EXEC tp.SP_CalcularInteresesYDeuda;
 
 
 
-
--- PASO 1#### GENERAR DATOS ADMINISTRACION ###### SP IMPORTACION DE DATOS TABLA ADMINISTRACION
 --ESTO IRIA EN LA CONSULTA DE "GenerarObjetos.sql" 
+-- PASO 1 ####### GENERAR DATOS ADMINISTRACION 
+
 use  Com5600G06
 
 IF NOT EXISTS (
@@ -60,7 +60,8 @@ SELECT * FROM tp.Administracion
 
 
 
---PASO 2 ##### IMPORTAR DATOS DEL CONSORCIO
+--PASO 2 ####### SP IMPORTAR DATOS DEL CONSORCIO
+
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
     WHERE object_id = OBJECT_ID(N'tp.ImportarConsorcio_01') AND type = 'P')
@@ -116,108 +117,22 @@ BEGIN
 END;
 GO
 
-
-
 EXEC tp.ImportarConsorcio_01 'C:\Users\ecgam\Documents\GuadalupeUnlam\BaseDeDatosAplicadas\TP_BaseDeDatosAplicadas\Grupo06\consorcios\datos varios.csv'
+EXEC tp.ImportarConsorcio_01 'C:\Users\Administrator\Desktop\TP_Base_de_datos_aplicada\Grupo06\consorcios\datos varios.CSV'
 
 SELECT * FROM tp.Consorcio
 
-
-
-
-
-
-/*CREATE or ALTER TRIGGER tp.tr_CalcularSaldoAlCierre
-ON tp.EstadoFinanciero
-AFTER INSERT
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    UPDATE EF
-    SET EF.SaldoAlCierre =  EF.SaldoAnterior  + EF.IngresoPagoEnTermino + EF.IngresoPagoAdeudado  + EF.IngresoPagoAdelantado  - EF.EgresoGastoMensual
-    FROM tp.EstadoFinanciero EF
-    INNER JOIN inserted i ON EF.ID_EF = i.ID_EF;
-
-END;
-GO
-
-CREATE OR ALTER PROCEDURE TP.GENERAR_ESTADO_FINANCIERO --- se forma men
-AS
-BEGIN
-	INSERT INTO tp.EstadoFinanciero (ID_EF,SaldoAnterior, IngresoPagoEnTermino, IngresoPagoAdeudado, IngresoPagoAdelantado, EgresoGastoMensual)
-	VALUES
-	(1,15000.00, 3000.00, 500.00, 0.00, 2500.00),
-	(2,20000.00, 2500.00, 1200.00, 300.00, 2800.00),
-	(3,12000.00, 4000.00, 800.00, 100.00, 3100.00),
-	(4,18000.00, 3500.00, 600.00, 400.00, 2900.00),
-	(5,10000.00, 5000.00, 1500.00, 200.00, 4200.00);
-
-END
-go*/
-
-exec TP.GENERAR_ESTADO_FINANCIERO 
-
-SELECT * FROM tp.EstadoFinanciero;
-
---PASO 3 ##### GENERAR DATOS CONSORCIO PARA QUE LA UNIDAD FUNCIONAL TENGA NOMBRE QUE HEREDAR DEBIDO A QUE ESTE TIENE UNA CLAVE COMPUESTA PRIMARIA
---############ PERO DESPUES HABRIA QUE CALCULAR LA SUPERFICIE TOTAL EN CONSORCIO CON OTRO STORE PROCEDURE MAS ADELANTE SON SOLO 5 CONSORCIOS
---############ ESTO IRIA EN LA CONSULTA DE "InsertarDatos.sql"
-
-CREATE OR ALTER PROCEDURE TP.GENERAR_CONSORCIO
-AS
-BEGIN
-	INSERT INTO tp.Consorcio (Nombre, Direccion, SuperficieTotal, ID_Administracion, ID_EF)
-	VALUES 
-	('Azcuenaga', 'Dirección Azcuenaga', NULL,11,1),
-	('Alzaga', 'Dirección Alzaga', NULL,11, 2),
-	('Alberdi', 'Dirección Alberdi', NULL,11,3),
-	('Unzue', 'Dirección Unzue', NULL,11,4),
-	('Pereyra Iraola', 'Dirección Pereyra Iraola', NULL,11,5);
-END
-
-EXEC TP.GENERAR_CONSORCIO
-
-SELECT * FROM TP.Consorcio C
-INNER JOIN TP.Administracion A ON A.ID_Administracion=C.ID_Administracion
-
---PASO 4 ##### DEBIDO A QUE EN UN MOMENTO VAMOS A CARGAR LAS UNIDADES FUNCIONALES DEBERIAMOS DE TENER UN 
---		#### TRIGGER QUE CALCULE LA SUPP TOTAL DE LOS CONSORCIOS
-
-CREATE OR ALTER TRIGGER TR_CALCULAR_SUPERFICIE_TOTAL_CONSORCIO
-ON tp.UnidadFuncional
-AFTER INSERT, UPDATE
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    -- Actualiza la superficie total de los consorcios involucrados
-    UPDATE c
-    SET c.SuperficieTotal = sub.TotalSuperficie
-    FROM tp.Consorcio c
-    INNER JOIN (
-        SELECT NombreConsorcio,SUM(ISNULL(M2_Unidad,0) + ISNULL(M2_BAULERA,0) + ISNULL(M2_COCHERA,0)) AS TotalSuperficie
-        FROM tp.UnidadFuncional
-        GROUP BY NombreConsorcio
-    ) AS sub
-    ON c.Nombre = sub.NombreConsorcio;
-
-END;
-GO
-
-
---PASO 5 ############## SP DE IMPORTACION DE UNIDAD FUNCIONAL TXT 
+--PASO 3 ####### SP DE IMPORTACION DE UNIDAD FUNCIONAL TXT 
 
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
-    WHERE object_id = OBJECT_ID(N'TP.SP_IMPORTAR_UNIDAD_FUNCIONAL_POR_CONSORCIO ') AND type = 'P')
+    WHERE object_id = OBJECT_ID(N'TP.ImportarUnidadFuncional_02 ') AND type = 'P')
 BEGIN
-    EXEC('CREATE PROCEDURE TP.SP_IMPORTAR_UNIDAD_FUNCIONAL_POR_CONSORCIO AS BEGIN SET NOCOUNT ON; END')
+    EXEC('CREATE PROCEDURE TP.ImportarUnidadFuncional_02 AS BEGIN SET NOCOUNT ON; END')
 END
 GO
 
-
-CREATE OR ALTER PROCEDURE TP.SP_IMPORTAR_UNIDAD_FUNCIONAL_POR_CONSORCIO 
+CREATE OR ALTER PROCEDURE TP.ImportarUnidadFuncional_02
 @RutaArchivo NVARCHAR(260)
 AS
 BEGIN
@@ -266,24 +181,21 @@ BEGIN
 
 END
    
+EXEC  TP.ImportarUnidadFuncional_02 'C:\Users\Administrator\Desktop\TP_Base_de_datos_aplicada\Grupo06\consorcios\UF por consorcio.TXT'
 
-EXEC  TP.SP_IMPORTAR_UNIDAD_FUNCIONAL_POR_CONSORCIO 'C:\Users\Administrator\Desktop\TP_Base_de_datos_aplicada\Grupo06\consorcios\UF por consorcio.TXT'
+select * from tp.UnidadFuncional
 
-SELECT * FROM TP.UnidadFuncional
-ORDER BY NombreConsorcio
-
-
---PASO 6 #### SP IMPORTACION DE DATOS TABLA PROPIETARIOS E INQUILINOS
+-- PASO 4 ####### SP DE IMPORTACION DATOS PROPIETARIOS E INQUILINOS
 
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
-    WHERE object_id = OBJECT_ID(N'tp.sp_ImportarPropietariosInquilinos') AND type = 'P')
+    WHERE object_id = OBJECT_ID(N'tp.sp_ImportarPropietariosInquilinos_03') AND type = 'P')
 BEGIN
-    EXEC('CREATE PROCEDURE tp.sp_ImportarPropietariosInquilinos AS BEGIN SET NOCOUNT ON; END')
+    EXEC('CREATE PROCEDURE tp.sp_ImportarPropietariosInquilinos_03 AS BEGIN SET NOCOUNT ON; END')
 END
 GO
 
-create or ALTER PROCEDURE tp.sp_ImportarPropietariosInquilinos
+create or ALTER PROCEDURE tp.sp_ImportarPropietariosInquilinos_03
 @RutaArchivo NVARCHAR(260)
 AS
 BEGIN
@@ -342,16 +254,15 @@ go
 
 
 EXEC tp.sp_ImportarPropietariosInquilinos 'C:\Users\ecgam\Documents\GuadalupeUnlam\BaseDeDatosAplicadas\TP_BaseDeDatosAplicadas\Grupo06\consorcios\Inquilino-propietarios-datos.csv'
-
-EXEC tp.sp_ImportarPropietariosInquilinos 'C:\Users\Administrator\Desktop\TP_Base_de_datos_aplicada\Grupo06\consorcios\Inquilino-propietarios-datos.csv'
+EXEC tp.sp_ImportarPropietariosInquilinos 'C:\Users\Administrator\Desktop\TP_Base_de_datos_aplicada\Inquilino-propietarios-datostransfromado.csv'
 
 select * from tp.Inquilino
 select * from tp.Propietario
 
-delete from tp.inquilino
+delete from tp.Inquilino
 delete from tp.propietario
 
---PASO 7 ####### SP IMPORTACION DE DNI PROPIETARIO A UNIDAD FUNCIONAL
+--PASO 5 ##### 
 
 create or ALTER PROCEDURE tp.sp_ImportarPropietariosInquilinosUnidadFuncional
 @RutaArchivo NVARCHAR(260)
@@ -395,5 +306,70 @@ END
 EXEC tp.sp_ImportarPropietariosInquilinosUnidadFuncional 'C:\Users\Administrator\Desktop\TP_Base_de_datos_aplicada\Grupo06\consorcios\Inquilino-propietarios-UF.CSV'
 
 SELECT * FROM TP. UNIDADFUNCIONAL
+
+/*CREATE or ALTER TRIGGER tp.tr_CalcularSaldoAlCierre
+ON tp.EstadoFinanciero
+AFTER INSERT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    UPDATE EF
+    SET EF.SaldoAlCierre =  EF.SaldoAnterior  + EF.IngresoPagoEnTermino + EF.IngresoPagoAdeudado  + EF.IngresoPagoAdelantado  - EF.EgresoGastoMensual
+    FROM tp.EstadoFinanciero EF
+    INNER JOIN inserted i ON EF.ID_EF = i.ID_EF;
+
+END;
+GO
+
+CREATE OR ALTER PROCEDURE TP.GENERAR_ESTADO_FINANCIERO --- se forma men
+AS
+BEGIN
+	INSERT INTO tp.EstadoFinanciero (ID_EF,SaldoAnterior, IngresoPagoEnTermino, IngresoPagoAdeudado, IngresoPagoAdelantado, EgresoGastoMensual)
+	VALUES
+	(1,15000.00, 3000.00, 500.00, 0.00, 2500.00),
+	(2,20000.00, 2500.00, 1200.00, 300.00, 2800.00),
+	(3,12000.00, 4000.00, 800.00, 100.00, 3100.00),
+	(4,18000.00, 3500.00, 600.00, 400.00, 2900.00),
+	(5,10000.00, 5000.00, 1500.00, 200.00, 4200.00);
+
+END
+go*/
+
+exec TP.GENERAR_ESTADO_FINANCIERO 
+
+SELECT * FROM tp.EstadoFinanciero;
+
+--PASO 3 ##### GENERAR DATOS CONSORCIO PARA QUE LA UNIDAD FUNCIONAL TENGA NOMBRE QUE HEREDAR DEBIDO A QUE ESTE TIENE UNA CLAVE COMPUESTA PRIMARIA
+--############ PERO DESPUES HABRIA QUE CALCULAR LA SUPERFICIE TOTAL EN CONSORCIO CON OTRO STORE PROCEDURE MAS ADELANTE SON SOLO 5 CONSORCIOS
+--############ ESTO IRIA EN LA CONSULTA DE "InsertarDatos.sql"
+
+
+
+EXEC TP.GENERAR_CONSORCIO
+
+SELECT * FROM TP.Consorcio C
+INNER JOIN TP.Administracion A ON A.ID_Administracion=C.ID_Administracion
+
+--PASO 4 ##### DEBIDO A QUE EN UN MOMENTO VAMOS A CARGAR LAS UNIDADES FUNCIONALES DEBERIAMOS DE TENER UN 
+--		#### TRIGGER QUE CALCULE LA SUPP TOTAL DE LOS CONSORCIOS
+
+
+
+
+
+
+SELECT * FROM TP.UnidadFuncional
+ORDER BY NombreConsorcio
+
+
+
+
+
+
+
+--PASO 7 ####### SP IMPORTACION DE DNI PROPIETARIO A UNIDAD FUNCIONAL
+
+
 
 -- PASO 8 ##### 
