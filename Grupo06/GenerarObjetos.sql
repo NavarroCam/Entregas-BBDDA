@@ -131,11 +131,11 @@ CREATE TABLE tp.UnidadFuncional (
   COCHERA CHAR(2) NOT NULL,
   M2_BAULERA INT NOT NULL CHECK (M2_BAULERA>=0),
   M2_COCHERA INT NOT NULL CHECK (M2_COCHERA>=0),
-  DNI_Propietario INT NULL,
+  CVU_CBU varchar(22),
   ID_EstadodeCuenta INT NULL,
   CONSTRAINT PK_UNIDAD_FUNCIONAL PRIMARY KEY (ID_UF,NombreConsorcio),
   CONSTRAINT FK_UF_Consorcio FOREIGN KEY (NombreConsorcio) REFERENCES tp.Consorcio(Nombre),
-  CONSTRAINT FK_UF_Propietario FOREIGN KEY (DNI_Propietario) REFERENCES tp.Propietario(DNI_Propietario),
+  CONSTRAINT FK_UF_Propietario FOREIGN KEY (CVU_CBU) REFERENCES tp.Propietario(CVU_CBU),
   CONSTRAINT FK_UF_EstadodeCuenta FOREIGN KEY (ID_EstadodeCuenta) REFERENCES tp.EstadodeCuenta(ID_EstadodeCuenta)
 );
 END
@@ -334,3 +334,197 @@ CREATE TABLE tp.Pago (
 END
 go
 
+
+--=======CREACIÓN DE SPs============================================================================
+--SP Importar datos administración
+IF NOT EXISTS (
+    SELECT * FROM sys.objects 
+    WHERE object_id = OBJECT_ID(N'tp.ImportarAdministracion_00') AND type = 'P')
+BEGIN
+    EXEC('CREATE PROCEDURE tp.ImportarAdministracion_00 AS BEGIN SET NOCOUNT ON; END') --SE NECESITA SQL DINAMICO PORQUE SQL NO PERMITE CREAR UN SP DENTRO DE UN BLOQUE CONDICIONAL DIRECTAMENTE
+END
+GO
+
+CREATE OR ALTER PROCEDURE tp.ImportarAdministracion_00
+AS
+BEGIN
+	INSERT INTO tp.Administracion (Nombre, Direccion, CorreoElectronico, Telefono)
+	VALUES   ('ADMINISTRACION DE CONSORCIOS ALTOS DE SAINT JUST', 'FLORENCIO VARELA 1900', 'SAINT.JUST@email.com', '1157736960')
+END;
+GO
+
+--SP Importar datos consorcio
+IF NOT EXISTS (
+    SELECT * FROM sys.objects 
+    WHERE object_id = OBJECT_ID(N'tp.ImportarConsorcio_01') AND type = 'P')
+BEGIN
+    EXEC('CREATE PROCEDURE tp.ImportarConsorcio_01 AS BEGIN SET NOCOUNT ON; END') --SE NECESITA SQL DINAMICO PORQUE SQL NO PERMITE CREAR UN SP DENTRO DE UN BLOQUE CONDICIONAL DIRECTAMENTE
+END
+GO
+
+CREATE OR ALTER PROCEDURE tp.ImportarConsorcio_01
+@RutaArchivo NVARCHAR(260)
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+    -- Tabla temporal para staging
+    CREATE TABLE #ConsorcioTemp (
+        ID_Consorcio VARCHAR(15),
+        Nombre VARCHAR(30),
+        Direccion VARCHAR(50),
+        CantUF INT,
+        SuperficieTotal DECIMAL(8,2)
+    );
+
+	 -- Importar archivo CSV
+	 DECLARE @Sql NVARCHAR(MAX);
+	 SET @Sql = '
+		BULK INSERT #ConsorcioTemp
+		FROM ''' + @RutaArchivo + '''
+		WITH (
+		FIELDTERMINATOR = '';'',
+		ROWTERMINATOR = ''\n'',
+		 FIRSTROW = 2
+		);';
+
+	EXEC(@Sql);
+
+	SELECT * FROM #ConsorcioTemp
+
+    -- Obtener ID_Administracion (ejemplo: el primero disponible)
+    DECLARE @ID_Administracion INT;
+    SELECT TOP 1 @ID_Administracion = ID_Administracion FROM tp.Administracion;
+
+    -- Insertar evitando duplicados
+    INSERT INTO tp.Consorcio (ID_Consorcio, Nombre, Direccion, CantUF, SuperficieTotal, ID_Administracion)
+    SELECT t.ID_Consorcio, t.Nombre, t.Direccion, t.CantUF, t.SuperficieTotal, @ID_Administracion
+    FROM #ConsorcioTemp t
+    WHERE NOT EXISTS (
+        SELECT 1 FROM tp.Consorcio c WHERE c.Nombre = t.Nombre);
+	
+END;
+GO
+
+--SP Importar datos Unidad Funcional txt
+IF NOT EXISTS (
+    SELECT * FROM sys.objects 
+    WHERE object_id = OBJECT_ID(N'TP.ImportarUnidadFuncional_02 ') AND type = 'P')
+BEGIN
+    EXEC('CREATE PROCEDURE TP.ImportarUnidadFuncional_02 AS BEGIN SET NOCOUNT ON; END')
+END
+GO
+
+CREATE OR ALTER PROCEDURE TP.ImportarUnidadFuncional_02
+@RutaArchivo NVARCHAR(260)
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+	CREATE TABLE #TEMP (
+		 NombreConsorcio VARCHAR(30),
+		 NUM_UNIDAD_FUNCIONAL INT,
+		 PISO VARCHAR(10),
+		 DEPARTAMENTO CHAR(3),
+		 COEFICIENTE VARCHAR(5),
+		 M2_UNIDAD_FUNCIONAL VARCHAR(10),
+		 BAULERA VARCHAR(5),
+		 COCHERA VARCHAR(5),
+		 M2_BAULERA VARCHAR(10),
+		 M2_COCHERA VARCHAR(10));
+	
+		DECLARE @Sql NVARCHAR(MAX);
+
+		SET @Sql = '
+		BULK INSERT #Temp
+		FROM ''' + @RutaArchivo + '''
+		WITH (
+		FIELDTERMINATOR = ''\t'',  -- tabulador
+		ROWTERMINATOR = ''\n'',
+		FIRSTROW = 2,            -- salta encabezado
+		CODEPAGE = ''65001''  );'; -- UTF-8
+		
+		
+		EXEC(@Sql);
+
+		INSERT INTO tp.UnidadFuncional ( ID_UF, NombreConsorcio, Piso, Departamento, PorcentajeProrrateo, M2_Unidad, Baulera, Cochera, M2_Baulera, M2_Cochera)
+		SELECT NUM_UNIDAD_FUNCIONAL, NombreConsorcio,PISO,DEPARTAMENTO, 
+		 CAST(REPLACE(COEFICIENTE, ',', '.') AS DECIMAL(5,2)) ,
+		M2_UNIDAD_FUNCIONAL,BAULERA,COCHERA,
+		CAST(M2_BAULERA AS INT),
+		CAST(M2_COCHERA AS INT)
+		FROM (
+				SELECT *,
+				ROW_NUMBER() OVER(PARTITION BY NUM_UNIDAD_FUNCIONAL,NombreConsorcio ORDER BY NUM_UNIDAD_FUNCIONAL) AS PRIMERO
+				FROM #Temp
+				WHERE NUM_UNIDAD_FUNCIONAL IS NOT NULL) SUB
+		WHERE SUB.PRIMERO = 1;
+
+		DROP TABLE #TEMP
+
+END
+
+--SP Importar datos propietarios e inquilinos
+IF NOT EXISTS (
+    SELECT * FROM sys.objects 
+    WHERE object_id = OBJECT_ID(N'tp.sp_ImportarPropietariosInquilinos_03') AND type = 'P')
+BEGIN
+    EXEC('CREATE PROCEDURE tp.sp_ImportarPropietariosInquilinos_03 AS BEGIN SET NOCOUNT ON; END')
+END
+GO
+
+create or ALTER PROCEDURE tp.sp_ImportarPropietariosInquilinos_03
+@RutaArchivo NVARCHAR(260)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+	CREATE TABLE #TempDatos (
+    Nombre VARCHAR(100),
+    apellido VARCHAR(100),
+    DNI int ,
+    email_personal VARCHAR(100),
+    teléfono_de_contacto char (10),
+    CVU_CBU varchar(22),
+    boleano bit
+	);
+
+	 -- Importar archivo CSV
+	 DECLARE @Sql NVARCHAR(MAX);
+	 SET @Sql = '
+		BULK INSERT #TempDatos 
+		FROM ''' + @RutaArchivo + '''
+		WITH (
+		FIELDTERMINATOR = '','',
+		ROWTERMINATOR = ''\n'',
+		 FIRSTROW = 2
+		);';
+
+	EXEC(@Sql);
+
+
+	-- insertamos inquilinos 1
+	INSERT INTO tp.inquilino(Nombres,apellido,DNI_Inquilino,CorreoElectronico,telefono,CVU_CBU)
+    SELECT 	LTRIM(sub.Nombre),LTRIM(sub.Apellido),sub.DNI,LTRIM(sub.Email_Personal),LTRIM(sub.Teléfono_De_Contacto),CVU_CBU                
+    FROM (  SELECT nombre, apellido, dni, email_personal, teléfono_de_contacto, CVU_CBU, boleano,
+		    ROW_NUMBER() OVER (PARTITION BY dni ORDER BY dni) AS primero  -- elige el primero
+			FROM #TempDatos
+		    WHERE boleano = 1
+		  ) sub
+	where sub.primero=1 AND NOT EXISTS (SELECT 1 FROM tp.Inquilino i WHERE i.DNI_inquilino = sub.DNI);
+
+	-- insertamos propietarios 0
+	INSERT INTO tp.Propietario(Nombres,apellido,DNI_Propietario,CorreoElectronico,telefono,CVU_CBU)
+    SELECT 	LTRIM(sub.Nombre),LTRIM(sub.Apellido),sub.DNI,LTRIM(sub.Email_Personal),LTRIM(sub.Teléfono_De_Contacto),CVU_CBU
+    FROM (   SELECT nombre, apellido, dni, email_personal, teléfono_de_contacto, CVU_CBU, boleano,
+			 ROW_NUMBER() OVER (PARTITION BY dni ORDER BY dni) AS primero  -- elige el primero
+			 FROM #TempDatos
+			 WHERE boleano = 0
+		 ) sub --- la sub sirve para que no inserte duplicados del archivo csv 
+	where sub.primero=1 AND NOT EXISTS (SELECT 1 FROM tp.propietario i WHERE i.DNI_propietario = sub.DNI);--- sirve para no insertar duplicados que ya tenia en mi tabla
+
+	DROP TABLE #TempDatos;
+
+end
+go
