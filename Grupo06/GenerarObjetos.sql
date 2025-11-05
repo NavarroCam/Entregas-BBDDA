@@ -338,7 +338,8 @@ go
 
 
 --=======CREACIÓN DE SPs============================================================================
---SP Importar datos administración
+
+-- 1) SP Importar datos administración
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
     WHERE object_id = OBJECT_ID(N'tp.ImportarAdministracion_00') AND type = 'P')
@@ -355,7 +356,7 @@ BEGIN
 END;
 GO
 
---SP Importar datos consorcio
+-- 2) SP Importar datos consorcio
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
     WHERE object_id = OBJECT_ID(N'tp.ImportarConsorcio_01') AND type = 'P')
@@ -409,7 +410,7 @@ BEGIN
 END;
 GO
 
---SP Importar datos Unidad Funcional txt
+-- 3) SP Importar datos Unidad Funcional txt
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
     WHERE object_id = OBJECT_ID(N'TP.ImportarUnidadFuncional_02 ') AND type = 'P')
@@ -467,7 +468,8 @@ BEGIN
 
 END
 
---SP Importar datos propietarios e inquilinos
+-- 4) SP Importar datos propietarios e inquilinos
+
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
     WHERE object_id = OBJECT_ID(N'tp.sp_ImportarPropietariosInquilinos_03') AND type = 'P')
@@ -498,10 +500,11 @@ BEGIN
 		BULK INSERT #TempDatos 
 		FROM ''' + @RutaArchivo + '''
 		WITH (
-		FIELDTERMINATOR = '','',
+		FIELDTERMINATOR = '';'',
 		ROWTERMINATOR = ''\n'',
 		 FIRSTROW = 2
 		);';
+
 
 	EXEC(@Sql);
 
@@ -530,3 +533,5 @@ BEGIN
 
 end
 go
+
+
