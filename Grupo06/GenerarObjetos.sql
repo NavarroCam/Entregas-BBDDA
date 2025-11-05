@@ -534,4 +534,47 @@ BEGIN
 end
 go
 
+-- 5) SP Importar CBU_CVU a unidad funcional
 
+create or ALTER PROCEDURE tp.sp_ImportarPropietariosInquilinosUnidadFuncional_04
+@RutaArchivo NVARCHAR(260)
+AS
+BEGIN
+    SET NOCOUNT ON;
+	CREATE TABLE #TempDatos ( 
+	CVU_CBU VARCHAR(22),
+    NOMBRE_CONSORCIO VARCHAR(100),
+    NUM_UNIDAD_FUNCIONAL INT,
+    PISO VARCHAR(5),
+    Departamento VARCHAR(5)
+   );
+
+   	 -- Importar archivo CSV
+	 DECLARE @Sql NVARCHAR(MAX);
+	 SET @Sql = '
+		BULK INSERT #TempDatos 
+		FROM ''' + @RutaArchivo + '''
+		WITH (
+		FIELDTERMINATOR = ''|'',
+		ROWTERMINATOR = ''\n'',
+		FIRSTROW = 2
+		);';
+
+	EXEC(@Sql);  --Tabla temporal con toda la info del archivo 
+	--NombreConsorcio, NroUFuncional, Piso, Depto
+
+
+
+	SELECT * FROM #TEMPDATOS  ----- PARA VER QUE IMPORTO BIEN 
+
+	
+	UPDATE  TP.UnidadFuncional
+	SET CVU_CBU=(
+	select CVU_CBU 
+	from #TempDatos T
+	where  ID_UF=t.NUM_UNIDAD_FUNCIONAL and NombreConsorcio=t.NOMBRE_CONSORCIO and piso=t.PISO and departamento=t.Departamento
+	and CVU_CBU in(select cvu_cbu from tp.Propietario))
+	
+
+	DROP TABLE #TempDatos;
+END

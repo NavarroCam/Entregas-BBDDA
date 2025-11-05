@@ -59,6 +59,7 @@ use  Com5600G06
 
 --PASO 5 ##### 
 
+
 create or ALTER PROCEDURE tp.sp_ImportarPropietariosInquilinosUnidadFuncional
 @RutaArchivo NVARCHAR(260)
 AS
