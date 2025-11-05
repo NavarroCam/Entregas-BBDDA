@@ -87,12 +87,13 @@ TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Propietario')
 BEGIN
 
 CREATE TABLE tp.Propietario (
-  DNI_Propietario INT PRIMARY KEY, --CHECK(LEN(DNI_Propietario)=8)
+  CVU_CBU varchar(22) PRIMARY KEY,
+  DNI_Propietario INT UNIQUE, --CHECK(LEN(DNI_Propietario)=8)
   Apellido VARCHAR(30) NOT NULL,
   Nombres VARCHAR(30) NOT NULL,
   CorreoElectronico VARCHAR(50) NOT NULL,
   Telefono CHAR(10) NOT NULL CHECK (telefono LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
-  CVU_CBU varchar(50) NOT NULL,
+  
 );
 END
 go 
@@ -147,12 +148,13 @@ TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Inquilino')
 BEGIN
 
 CREATE TABLE tp.Inquilino (
-  DNI_Inquilino INT PRIMARY KEY,
+  CVU_CBU varchar (22) PRIMARY KEY,
+  DNI_Inquilino INT UNIQUE,
   Apellido VARCHAR(30) NOT NULL,
   Nombres VARCHAR(30) NOT NULL,
   CorreoElectronico VARCHAR(50) NOT NULL,
   Telefono CHAR(10) NOT NULL CHECK (telefono LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
-  CVU_CBU varchar (50) NOT NULL,
+  
 );
 END
 go
@@ -485,7 +487,7 @@ BEGIN
     apellido VARCHAR(100),
     DNI int ,
     email_personal VARCHAR(100),
-    teléfono_de_contacto char (10),
+    telefono_de_contacto char (10),
     CVU_CBU varchar(22),
     boleano bit
 	);
@@ -506,23 +508,23 @@ BEGIN
 
 	-- insertamos inquilinos 1
 	INSERT INTO tp.inquilino(Nombres,apellido,DNI_Inquilino,CorreoElectronico,telefono,CVU_CBU)
-    SELECT 	LTRIM(sub.Nombre),LTRIM(sub.Apellido),sub.DNI,LTRIM(sub.Email_Personal),LTRIM(sub.Teléfono_De_Contacto),CVU_CBU                
-    FROM (  SELECT nombre, apellido, dni, email_personal, teléfono_de_contacto, CVU_CBU, boleano,
+    SELECT 	LTRIM(sub.Nombre),LTRIM(sub.Apellido),sub.DNI,LTRIM(sub.Email_Personal),LTRIM(sub.telefono_De_Contacto),CVU_CBU                
+    FROM (  SELECT nombre, apellido, dni, email_personal, telefono_de_contacto, CVU_CBU, boleano,
 		    ROW_NUMBER() OVER (PARTITION BY dni ORDER BY dni) AS primero  -- elige el primero
 			FROM #TempDatos
 		    WHERE boleano = 1
 		  ) sub
-	where sub.primero=1 AND NOT EXISTS (SELECT 1 FROM tp.Inquilino i WHERE i.DNI_inquilino = sub.DNI);
+	where sub.primero=1 AND NOT EXISTS (SELECT 1 FROM tp.Inquilino i WHERE i.CVU_CBU = sub.CVU_CBU);
 
 	-- insertamos propietarios 0
 	INSERT INTO tp.Propietario(Nombres,apellido,DNI_Propietario,CorreoElectronico,telefono,CVU_CBU)
-    SELECT 	LTRIM(sub.Nombre),LTRIM(sub.Apellido),sub.DNI,LTRIM(sub.Email_Personal),LTRIM(sub.Teléfono_De_Contacto),CVU_CBU
-    FROM (   SELECT nombre, apellido, dni, email_personal, teléfono_de_contacto, CVU_CBU, boleano,
+    SELECT 	LTRIM(RTRIM (sub.Nombre)),LTRIM(sub.Apellido),sub.DNI,LTRIM(sub.Email_Personal),LTRIM(sub.telefono_De_Contacto),CVU_CBU
+    FROM (   SELECT nombre, apellido, dni, email_personal, telefono_de_contacto, CVU_CBU, boleano,
 			 ROW_NUMBER() OVER (PARTITION BY dni ORDER BY dni) AS primero  -- elige el primero
 			 FROM #TempDatos
 			 WHERE boleano = 0
 		 ) sub --- la sub sirve para que no inserte duplicados del archivo csv 
-	where sub.primero=1 AND NOT EXISTS (SELECT 1 FROM tp.propietario i WHERE i.DNI_propietario = sub.DNI);--- sirve para no insertar duplicados que ya tenia en mi tabla
+	where sub.primero=1 AND NOT EXISTS (SELECT 1 FROM tp.propietario i WHERE i.CVU_CBU = sub.CVU_CBU);--- sirve para no insertar duplicados que ya tenia en mi tabla
 
 	DROP TABLE #TempDatos;
 

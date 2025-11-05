@@ -65,8 +65,8 @@ AS
 BEGIN
     SET NOCOUNT ON;
 USE Com5600G06
-	CREATE TABLE #TempDatos (
-    ROW_NUMBER(), CVU_CBU VARCHAR(22),
+	CREATE TABLE #TempDatos ( 
+	CVU_CBU VARCHAR(22),
     NOMBRE_CONSORCIO VARCHAR(100),
     NUM_UNIDAD_FUNCIONAL INT,
     PISO VARCHAR(5),
@@ -87,13 +87,22 @@ USE Com5600G06
 	EXEC(@Sql);  --Tabla temporal con toda la info del archivo 
 	--NombreConsorcio, NroUFuncional, Piso, Depto
 
+
+
 	SELECT * FROM #TEMPDATOS  ----- PARA VER QUE IMPORTO BIEN 
 
-	INSERT INTO tp.UnidadFuncional(CVU_CBU)
-	select t.CVU_CBU
-	from #TEMPDATOS t
-	inner join tp.Consorcio C on c.Nombre=t.NOMBRE_CONSORCIO
-	inner join tp.propietario P on P.CVU_CBU=t.CVU_CBU
+	
+	UPDATE  TP.UnidadFuncional SET CVU_CBU=4532573105843790000000
+
+	SELECT * FROM TP.UnidadFuncional
+	SELECT * FROM TP.Inquilino
+
+
+
+	
+
+
+	SELECT 
 
 	DROP TABLE #TempDatos;
 END
