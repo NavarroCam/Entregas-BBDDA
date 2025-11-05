@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
-<SqlWorkbenchSqlProject xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="Grupo06">
+<SqlWorkbenchSqlProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="Grupo06">
   <Items>
-    <LogicalFolder Name="Conexiones" Type="2" Sorted="true">
+    <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="CAM-PC\SQLEXPRESS:DESKTOP-JKOJ5PF\ecgam">
+        <ConnectionNode Name="CAM-PC\SQLEXPRESS:">
           <Created>2025-11-02T15:24:06.1852578-03:00</Created>
           <Type>SQL</Type>
           <Server>CAM-PC\SQLEXPRESS</Server>
           <UserName />
-          <Authentication>Autenticación de Windows</Authentication>
+          <Authentication>SQL</Authentication>
           <InitialDB />
           <LoginTimeout>30</LoginTimeout>
           <TrustServerCertificate>True</TrustServerCertificate>
@@ -33,12 +33,12 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Consulta</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="DESKTOP-JKOJ5PF\SQLEXPRESS02:DESKTOP-JKOJ5PF\ecgam">
+        <ConnectionNode Name="DESKTOP-JKOJ5PF\SQLEXPRESS02:">
           <Created>2025-10-30T17:36:47.8684992-03:00</Created>
           <Type>SQL</Type>
           <Server>DESKTOP-JKOJ5PF\SQLEXPRESS02</Server>
           <UserName />
-          <Authentication>Autenticación de Windows</Authentication>
+          <Authentication>SQL</Authentication>
           <InitialDB />
           <LoginTimeout>30</LoginTimeout>
           <TrustServerCertificate>True</TrustServerCertificate>
@@ -63,9 +63,24 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
+        <ConnectionNode Name="JAVIERPC\SQLEXPRESS:JavierPC\Javier">
+          <Created>2025-11-04T21:33:19.5281569-03:00</Created>
+          <Type>SQL</Type>
+          <Server>JAVIERPC\SQLEXPRESS</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <TrustServerCertificate>True</TrustServerCertificate>
+          <HostNameInServerCertificate />
+          <EncryptionOption>True</EncryptionOption>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
       </Items>
     </LogicalFolder>
-    <LogicalFolder Name="Consultas" Type="0" Sorted="true">
+    <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
         <FileNode Name="GenerarObjetos.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:True</AssociatedConnectionMoniker>
@@ -80,8 +95,8 @@
           <FullPath>InsertarDatos.sql</FullPath>
         </FileNode>
         <FileNode Name="Pruebas.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:JAVIERPC\SQLEXPRESS:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>JAVIERPC\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>Pruebas.sql</FullPath>
         </FileNode>
@@ -93,7 +108,7 @@
         </FileNode>
       </Items>
     </LogicalFolder>
-    <LogicalFolder Name="Varios" Type="3" Sorted="true">
+    <LogicalFolder Name="Miscellaneous" Type="3" Sorted="true">
       <Items />
     </LogicalFolder>
   </Items>
