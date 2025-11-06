@@ -339,6 +339,11 @@ go
 
 --=======CREACIÓN DE SPs============================================================================
 
+EXEC xp_fileexist '\\CAM-PC\ArchivosImportacion'; --servidor pueda acceder a esa carpeta sin rutas locales
+EXEC xp_fileexist '\\CAM-PC\ArchivosImportacion\Inquilino-propietarios-datos.csv'; -- Si devuelve File Exists = 1, ¡listo! 🎉
+-- SQL Server puede leer archivos compartidos desde esa carpeta, y todos los usuarios del SP van a poder usarla también.
+
+
 -- 1) SP Importar datos administración
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
