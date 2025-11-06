@@ -339,21 +339,16 @@ go
 
 --=======CREACIÓN DE SPs============================================================================
 
-EXEC xp_fileexist '\\CAM-PC\ArchivosImportacion'; --servidor pueda acceder a esa carpeta sin rutas locales
-EXEC xp_fileexist '\\CAM-PC\ArchivosImportacion\Inquilino-propietarios-datos.csv'; -- Si devuelve File Exists = 1, ¡listo! 🎉
--- SQL Server puede leer archivos compartidos desde esa carpeta, y todos los usuarios del SP van a poder usarla también.
-
-
 -- 1) SP Importar datos administración
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
-    WHERE object_id = OBJECT_ID(N'tp.ImportarAdministracion_00') AND type = 'P')
+    WHERE object_id = OBJECT_ID(N'tp.sp_ImportarAdministracion_00') AND type = 'P')
 BEGIN
-    EXEC('CREATE PROCEDURE tp.ImportarAdministracion_00 AS BEGIN SET NOCOUNT ON; END') --SE NECESITA SQL DINAMICO PORQUE SQL NO PERMITE CREAR UN SP DENTRO DE UN BLOQUE CONDICIONAL DIRECTAMENTE
+    EXEC('CREATE PROCEDURE tp.sp_ImportarAdministracion_00 AS BEGIN SET NOCOUNT ON; END') --SE NECESITA SQL DINAMICO PORQUE SQL NO PERMITE CREAR UN SP DENTRO DE UN BLOQUE CONDICIONAL DIRECTAMENTE
 END
 GO
 
-CREATE OR ALTER PROCEDURE tp.ImportarAdministracion_00
+CREATE OR ALTER PROCEDURE tp.sp_ImportarAdministracion_00
 AS
 BEGIN
 	INSERT INTO tp.Administracion (Nombre, Direccion, CorreoElectronico, Telefono)
@@ -364,13 +359,13 @@ GO
 -- 2) SP Importar datos consorcio
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
-    WHERE object_id = OBJECT_ID(N'tp.ImportarConsorcio_01') AND type = 'P')
+    WHERE object_id = OBJECT_ID(N'tp.sp_ImportarConsorcio_01') AND type = 'P')
 BEGIN
-    EXEC('CREATE PROCEDURE tp.ImportarConsorcio_01 AS BEGIN SET NOCOUNT ON; END') --SE NECESITA SQL DINAMICO PORQUE SQL NO PERMITE CREAR UN SP DENTRO DE UN BLOQUE CONDICIONAL DIRECTAMENTE
+    EXEC('CREATE PROCEDURE tp.sp_ImportarConsorcio_01 AS BEGIN SET NOCOUNT ON; END') --SE NECESITA SQL DINAMICO PORQUE SQL NO PERMITE CREAR UN SP DENTRO DE UN BLOQUE CONDICIONAL DIRECTAMENTE
 END
 GO
 
-CREATE OR ALTER PROCEDURE tp.ImportarConsorcio_01
+CREATE OR ALTER PROCEDURE tp.sp_ImportarConsorcio_01
 @RutaArchivo NVARCHAR(260)
 AS
 BEGIN
@@ -418,13 +413,13 @@ GO
 -- 3) SP Importar datos Unidad Funcional txt
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
-    WHERE object_id = OBJECT_ID(N'TP.ImportarUnidadFuncional_02 ') AND type = 'P')
+    WHERE object_id = OBJECT_ID(N'tp.sp_ImportarUnidadFuncional_02 ') AND type = 'P')
 BEGIN
-    EXEC('CREATE PROCEDURE TP.ImportarUnidadFuncional_02 AS BEGIN SET NOCOUNT ON; END')
+    EXEC('CREATE PROCEDURE tp.sp_ImportarUnidadFuncional_02 AS BEGIN SET NOCOUNT ON; END')
 END
 GO
 
-CREATE OR ALTER PROCEDURE TP.ImportarUnidadFuncional_02
+CREATE OR ALTER PROCEDURE tp.sp_ImportarUnidadFuncional_02
 @RutaArchivo NVARCHAR(260)
 AS
 BEGIN
@@ -540,6 +535,14 @@ end
 go
 
 -- 5) SP Importar CBU_CVU a unidad funcional
+
+IF NOT EXISTS (
+    SELECT * FROM sys.objects 
+    WHERE object_id = OBJECT_ID(N'tp.sp_ImportarPropietariosInquilinosUnidadFuncional_04') AND type = 'P')
+BEGIN
+    EXEC('CREATE PROCEDURE tp.sp_ImportarPropietariosInquilinosUnidadFuncional_04 AS BEGIN SET NOCOUNT ON; END')
+END
+GO
 
 create or ALTER PROCEDURE tp.sp_ImportarPropietariosInquilinosUnidadFuncional_04
 @RutaArchivo NVARCHAR(260)
