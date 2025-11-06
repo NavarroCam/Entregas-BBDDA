@@ -83,20 +83,22 @@ go
 
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
-TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Propietario')
+TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Persona')
 BEGIN
 
-CREATE TABLE tp.Propietario (
-  CVU_CBU varchar(22) PRIMARY KEY,
-  DNI_Propietario INT UNIQUE, --CHECK(LEN(DNI_Propietario)=8)
+CREATE TABLE tp.Persona (
+  CVU_CBU varchar(22),
+  Tipo INT NOT NULL CHECK (Tipo IN (0, 1)),
+  DNI_Persona INT, --CHECK(LEN(DNI_Propietario)=8)
   Apellido VARCHAR(30) NOT NULL,
   Nombres VARCHAR(30) NOT NULL,
   CorreoElectronico VARCHAR(50) NOT NULL,
   Telefono CHAR(10) NOT NULL CHECK (telefono LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
-  
+  CONSTRAINT PK_Persona PRIMARY KEY (CVU_CBU, Tipo)
 );
 END
 go 
+
 
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
@@ -133,31 +135,16 @@ CREATE TABLE tp.UnidadFuncional (
   M2_BAULERA INT NOT NULL CHECK (M2_BAULERA>=0),
   M2_COCHERA INT NOT NULL CHECK (M2_COCHERA>=0),
   CVU_CBU varchar(22),
+  Tipo INT,
   ID_EstadodeCuenta INT NULL,
   CONSTRAINT PK_UNIDAD_FUNCIONAL PRIMARY KEY (ID_UF,NombreConsorcio),
   CONSTRAINT FK_UF_Consorcio FOREIGN KEY (NombreConsorcio) REFERENCES tp.Consorcio(Nombre),
-  CONSTRAINT FK_UF_Propietario FOREIGN KEY (CVU_CBU) REFERENCES tp.Propietario(CVU_CBU),
+  CONSTRAINT FK_UF_Persona FOREIGN KEY (CVU_CBU, Tipo) REFERENCES tp.Persona(CVU_CBU, Tipo),
   CONSTRAINT FK_UF_EstadodeCuenta FOREIGN KEY (ID_EstadodeCuenta) REFERENCES tp.EstadodeCuenta(ID_EstadodeCuenta)
 );
 END
 go
 
-
-IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
-TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Inquilino')
-BEGIN
-
-CREATE TABLE tp.Inquilino (
-  CVU_CBU varchar (22) PRIMARY KEY,
-  DNI_Inquilino INT UNIQUE,
-  Apellido VARCHAR(30) NOT NULL,
-  Nombres VARCHAR(30) NOT NULL,
-  CorreoElectronico VARCHAR(50) NOT NULL,
-  Telefono CHAR(10) NOT NULL CHECK (telefono LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
-  
-);
-END
-go
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
 TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Expensa')
@@ -171,11 +158,7 @@ CREATE TABLE tp.Expensa (
   SegundaFechaVencimiento SMALLDATETIME NOT NULL,
   ID_UF INT NOT NULL,
   NombreConsorcio VARCHAR(30),
-  DNI_Propietario INT NOT NULL,
-  DNI_Inquilino INT NOT NULL,
-  CONSTRAINT FK_EX_ID_UF FOREIGN KEY (ID_UF,NombreConsorcio) REFERENCES tp.UnidadFuncional(ID_UF,NombreConsorcio),
-  CONSTRAINT FK_EX_Propietario FOREIGN KEY (DNI_Propietario) REFERENCES tp.Propietario(DNI_Propietario),
-  CONSTRAINT FK_EX_Inquilino FOREIGN KEY (DNI_Inquilino) REFERENCES tp.Inquilino(DNI_Inquilino)
+  CONSTRAINT FK_EX_ID_UF FOREIGN KEY (ID_UF,NombreConsorcio) REFERENCES tp.UnidadFuncional(ID_UF,NombreConsorcio)
 );
 END
 go
@@ -356,6 +339,8 @@ BEGIN
 END;
 GO
 
+
+
 -- 2) SP Importar datos consorcio
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
@@ -393,8 +378,6 @@ BEGIN
 		);';
 
 	EXEC(@Sql);
-
-	SELECT * FROM #ConsorcioTemp
 
     -- Obtener ID_Administracion (ejemplo: el primero disponible)
     DECLARE @ID_Administracion INT;
@@ -468,17 +451,18 @@ BEGIN
 
 END
 
--- 4) SP Importar datos propietarios e inquilinos
+
+-- 4) SP Importar datos Personas
 
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
-    WHERE object_id = OBJECT_ID(N'tp.sp_ImportarPropietariosInquilinos_03') AND type = 'P')
+    WHERE object_id = OBJECT_ID(N'tp.sp_ImportarPersonas_03') AND type = 'P')
 BEGIN
-    EXEC('CREATE PROCEDURE tp.sp_ImportarPropietariosInquilinos_03 AS BEGIN SET NOCOUNT ON; END')
+    EXEC('CREATE PROCEDURE tp.sp_ImportarPersonas_03 AS BEGIN SET NOCOUNT ON; END')
 END
 GO
 
-create or ALTER PROCEDURE tp.sp_ImportarPropietariosInquilinos_03
+create or ALTER PROCEDURE tp.sp_ImportarPersonas_03
 @RutaArchivo NVARCHAR(260)
 AS
 BEGIN
@@ -486,12 +470,12 @@ BEGIN
 
 	CREATE TABLE #TempDatos (
     Nombre VARCHAR(100),
-    apellido VARCHAR(100),
+    Apellido VARCHAR(100),
     DNI int ,
-    email_personal VARCHAR(100),
-    telefono_de_contacto char (10),
+    Email_Personal VARCHAR(100),
+    Telefono_De_Contacto char (10),
     CVU_CBU varchar(22),
-    boleano bit
+    Boleano int
 	);
 
 	 -- Importar archivo CSV
@@ -505,34 +489,26 @@ BEGIN
 		 FIRSTROW = 2
 		);';
 
-
 	EXEC(@Sql);
 
-
-	-- insertamos inquilinos 1
-	INSERT INTO tp.inquilino(Nombres,apellido,DNI_Inquilino,CorreoElectronico,telefono,CVU_CBU)
-    SELECT 	LTRIM(sub.Nombre),LTRIM(sub.Apellido),sub.DNI,LTRIM(sub.Email_Personal),LTRIM(sub.telefono_De_Contacto),CVU_CBU                
+	-- insertamos personas
+	INSERT INTO tp.Persona(Nombres,apellido,DNI_Persona,CorreoElectronico,telefono,CVU_CBU, Tipo)
+    SELECT 	LTRIM(sub.Nombre),LTRIM(sub.Apellido),sub.DNI,LTRIM(sub.Email_Personal),LTRIM(sub.telefono_De_Contacto),sub.CVU_CBU, 
+	sub.boleano AS Tipo            
     FROM (  SELECT nombre, apellido, dni, email_personal, telefono_de_contacto, CVU_CBU, boleano,
-		    ROW_NUMBER() OVER (PARTITION BY dni ORDER BY dni) AS primero  -- elige el primero
+		    ROW_NUMBER() OVER (PARTITION BY CVU_CBU,boleano ORDER BY dni) AS primero  -- elige el primero
 			FROM #TempDatos
-		    WHERE boleano = 1
 		  ) sub
-	where sub.primero=1 AND NOT EXISTS (SELECT 1 FROM tp.Inquilino i WHERE i.CVU_CBU = sub.CVU_CBU);
-
-	-- insertamos propietarios 0
-	INSERT INTO tp.Propietario(Nombres,apellido,DNI_Propietario,CorreoElectronico,telefono,CVU_CBU)
-    SELECT 	LTRIM(RTRIM (sub.Nombre)),LTRIM(sub.Apellido),sub.DNI,LTRIM(sub.Email_Personal),LTRIM(sub.telefono_De_Contacto),CVU_CBU
-    FROM (   SELECT nombre, apellido, dni, email_personal, telefono_de_contacto, CVU_CBU, boleano,
-			 ROW_NUMBER() OVER (PARTITION BY dni ORDER BY dni) AS primero  -- elige el primero
-			 FROM #TempDatos
-			 WHERE boleano = 0
-		 ) sub --- la sub sirve para que no inserte duplicados del archivo csv 
-	where sub.primero=1 AND NOT EXISTS (SELECT 1 FROM tp.propietario i WHERE i.CVU_CBU = sub.CVU_CBU);--- sirve para no insertar duplicados que ya tenia en mi tabla
+	where sub.primero=1 
+	AND sub.Nombre IS NOT NULL AND LTRIM(RTRIM(sub.Nombre)) <> '' 
+	AND NOT EXISTS (SELECT 1 FROM tp.Persona p WHERE p.CVU_CBU = sub.CVU_CBU AND p.Tipo = sub.boleano)
 
 	DROP TABLE #TempDatos;
 
 end
 go
+
+
 
 -- 5) SP Importar CBU_CVU a unidad funcional
 
@@ -571,17 +547,19 @@ BEGIN
 	EXEC(@Sql);  --Tabla temporal con toda la info del archivo 
 	--NombreConsorcio, NroUFuncional, Piso, Depto
 
-
-
-	SELECT * FROM #TEMPDATOS  ----- PARA VER QUE IMPORTO BIEN 
-
 	
-	UPDATE  TP.UnidadFuncional
-	SET CVU_CBU=(
-	select CVU_CBU 
-	from #TempDatos T
-	where  ID_UF=t.NUM_UNIDAD_FUNCIONAL and NombreConsorcio=t.NOMBRE_CONSORCIO and piso=t.PISO and departamento=t.Departamento
-	and CVU_CBU in(select cvu_cbu from tp.Propietario))
+	    UPDATE uf
+        SET 
+             uf.CVU_CBU = t.CVU_CBU,
+             uf.Tipo = p.Tipo
+    FROM tp.UnidadFuncional AS uf
+    INNER JOIN #TempDatos AS t
+        ON uf.ID_UF = t.NUM_UNIDAD_FUNCIONAL
+        AND uf.NombreConsorcio = t.NOMBRE_CONSORCIO
+        AND uf.Piso = t.PISO
+        AND uf.Departamento = t.Departamento
+    INNER JOIN tp.Persona AS p
+        ON p.CVU_CBU = t.CVU_CBU;
 	
 
 	DROP TABLE #TempDatos;

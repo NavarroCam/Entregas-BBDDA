@@ -3,6 +3,7 @@
 --EXEC xp_fileexist '\\CAM-PC\ArchivosImportacion\Inquilino-propietarios-datos.csv'; -- Si devuelve File Exists = 1, ¡listo! 🎉
 -- SQL Server puede leer archivos compartidos desde esa carpeta, y todos los usuarios del SP van a poder usarla también.
 
+USE Com5600G06
 
 --Importar datos administración
 
@@ -29,6 +30,8 @@ SELECT * FROM tp.Consorcio
 
 --EXEC  tp.sp_ImportarUnidadFuncional_02 'C:\Users\Administrator\Desktop\TP_Base_de_datos_aplicada\Grupo06\consorcios\UF por consorcio.TXT'
 --EXEC  tp.sp_ImportarUnidadFuncional_02 'C:\Users\majo_\Documents\Bdaa25\Tp_Aplicada2025\Entregas-BBDDA\consorcios\UF por consorcio.TXT'
+--EXEC  tp.sp_ImportarUnidadFuncional_02 'C:\Users\ecgam\Documents\GuadalupeUnlam\BaseDeDatosAplicadas\TP_BaseDeDatosAplicadas\Grupo06\consorcios\UF por consorcio.TXT'
+
 
 select * from tp.UnidadFuncional
 
@@ -36,17 +39,20 @@ select * from tp.UnidadFuncional
 
 --Importar datos propietarios e inquilinos
 
---EXEC tp.sp_ImportarPropietariosInquilinos_03 'C:\Users\ecgam\Documents\GuadalupeUnlam\BaseDeDatosAplicadas\TP_BaseDeDatosAplicadas\Grupo06\consorcios\Inquilino-propietarios-datos.csv'
---EXEC tp.sp_ImportarPropietariosInquilinos_03 'C:\Users\Administrator\Desktop\TP_Base_de_datos_aplicada\Grupo06\consorcios\Inquilino-propietarios-datos.csv'
---EXEC tp.sp_ImportarPropietariosInquilinos_03'C:\Users\majo_\Documents\Bdaa25\Tp_Aplicada2025\Entregas-BBDDA\consorcios\Inquilino-propietarios-datos.csv'
+--EXEC tp.sp_ImportarPersonas_03 'C:\Users\ecgam\Documents\GuadalupeUnlam\BaseDeDatosAplicadas\TP_BaseDeDatosAplicadas\Grupo06\consorcios\Inquilino-propietarios-datos.csv'
+--EXEC tp.sp_ImportarPersonas_03 'C:\Users\Administrator\Desktop\TP_Base_de_datos_aplicada\Grupo06\consorcios\Inquilino-propietarios-datos.csv'
+--EXEC tp.sp_ImportarPersonas_03'C:\Users\majo_\Documents\Bdaa25\Tp_Aplicada2025\Entregas-BBDDA\consorcios\Inquilino-propietarios-datos.csv'
 
-select * from tp.Inquilino
-select * from tp.Propietario
+select * from tp.Persona
+
 
 
 
 -- Cargar cbu a unidad funcional
 
---exec tp.sp_ImportarPropietariosInquilinosUnidadFuncional_04 'C:\Users\Administrator\Desktop\TP_Base_de_datos_aplicada\Grupo06\consorcios\Inquilino-propietarios-UF.csv'
+--EXEC tp.sp_ImportarPropietariosInquilinosUnidadFuncional_04 'C:\Users\Administrator\Desktop\TP_Base_de_datos_aplicada\Grupo06\consorcios\Inquilino-propietarios-UF.csv'
+--EXEC tp.sp_ImportarPropietariosInquilinosUnidadFuncional_04 'C:\Users\ecgam\Documents\GuadalupeUnlam\BaseDeDatosAplicadas\TP_BaseDeDatosAplicadas\Grupo06\consorcios\Inquilino-propietarios-UF.csv'
 
 select * from tp.UnidadFuncional
+
+
