@@ -250,42 +250,13 @@ BEGIN
 CREATE TABLE tp.Limpieza (
   NRO_Factura INT IDENTITY(1,1) PRIMARY KEY,
   ID_Expensa INT NULL,
-  Tipo CHAR (1) NOT NULL CHECK (Tipo IN ('S', 'E')),
+  Importe DECIMAL(20,2) NULL,
+  NombreEmpresaLimpieza VARCHAR(30) DEFAULT('SIN NOMBRE'),
   CONSTRAINT FK_L_Expensa FOREIGN KEY (ID_Expensa) REFERENCES tp.Expensa(ID_Expensa)
 );
-
 END
 go
 
-
-IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
-TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'ServicioDomesticoLimpieza')
-
-BEGIN
-CREATE TABLE tp.ServicioDomesticoLimpieza (
-  NRO_FacturaLimpieza INT PRIMARY KEY,
-  SueldoEmpleado DECIMAL (20,2)  DEFAULT 0,
-  ImporteProductos DECIMAL(20,2)  DEFAULT 0,
-  CONSTRAINT FK_SD_NRO_FacturaLimpieza FOREIGN KEY (NRO_FacturaLimpieza) REFERENCES tp.Limpieza(NRO_Factura)
-);
-
-END
-go
-
-IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
-TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'EmpresaLimpieza')
-
-BEGIN
-CREATE TABLE tp.EmpresaLimpieza (
-  NRO_FacturaLimpieza INT PRIMARY KEY,
-  NombreEmpresaLimpieza VARCHAR(30) NULL,
-  Importe DECIMAL(20,2) DEFAULT 0,
-  CONSTRAINT FK_EL_NRO_FacturaLimpieza FOREIGN KEY (NRO_FacturaLimpieza) REFERENCES tp.Limpieza(NRO_Factura)
-);
-
-
-END
-go
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
 TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'MantenimientoCtaBancaria')
@@ -726,15 +697,8 @@ BEGIN
 	INNER JOIN TP.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
 	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL 
 
-	DECLARE @a INT = 1;
-
-	WHILE @a <= 405 --------
-	BEGIN
-		INSERT INTO TP.Limpieza(ID_Expensa,Tipo) VALUES (@a,'e')
-		SET @a = @a + 1;
-	END
 	
-	INSERT INTO TP.EmpresaLimpieza (Importe,NRO_FacturaLimpieza)
+	INSERT INTO TP.Limpieza(Importe,ID_Expensa)
 	SELECT T.LIMPIEZA*0.01*U.PorcentajeProrrateo,
 	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
 	FROM #temp T
@@ -790,7 +754,18 @@ BEGIN
     INSERT INTO tp.GastoExtraordinario (Tipo, Importe, Detalle, NroCuota, ID_Expensa)
     SELECT Tipo, Importe, Detalle, NroCuota, ID_Expensa 
     FROM  #TempGastosExt;
+
+	UPDATE E
+	SET E.TotalAPagar = ISNULL(E.TotalAPagar, 0) + T.TotalImporte
+	FROM tp.Expensa AS E
+	INNER JOIN (
+    SELECT  ID_Expensa,SUM(Importe) AS TotalImporte
+    FROM #TempGastosExt
+    GROUP BY ID_Expensa
+	) AS T ON E.ID_Expensa = T.ID_Expensa;
     
-    -- La tabla temporal #TempGastosExt se elimina automáticamente al finalizar el SP.
+	DROP TABLE #TempGastosExt
+    
+	-- La tabla temporal #TempGastosExt se elimina automáticamente al finalizar el SP.
 END
 GO

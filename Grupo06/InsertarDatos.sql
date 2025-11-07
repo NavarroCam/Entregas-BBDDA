@@ -3,7 +3,9 @@ USE Com5600G06
 
 EXEC tp.sp_ImportarAdministracion_00
 
-SELECT * FROM tp.Administracion
+SELECT *
+FROM tp.Administracion
+FOR XML AUTO, ELEMENTS;
 
 -- 2) Importar datos consorcio
 
@@ -13,7 +15,10 @@ SELECT * FROM tp.Administracion
 --EXEC tp.ImportarConsorcio_01 '/tmp/datos varios.csv'
 
 EXEC tp.sp_ImportarConsorcio_01 'C:\Users\Camila Navarro\Grupo06\consorcios\datos varios.CSV'
-SELECT * FROM tp.Consorcio
+
+SELECT * 
+FROM tp.Consorcio
+FOR XML AUTO, ELEMENTS;
 
 -- 3)Importar datos unidad funcional txt
 
@@ -21,7 +26,8 @@ SELECT * FROM tp.Consorcio
 --EXEC  TP.ImportarUnidadFuncional_02 'C:\Users\majo_\Documents\Bdaa25\Tp_Aplicada2025\Entregas-BBDDA\consorcios\UF por consorcio.TXT'
 
 EXEC  tp.sp_ImportarUnidadFuncional_02 'C:\Users\Camila Navarro\Grupo06\consorcios\UF por consorcio.TXT'
-select * from tp.UnidadFuncional  
+
+--select * from tp.UnidadFuncional  
 
 -- 4) Importar datos propietarios e inquilinos
 
@@ -30,21 +36,28 @@ select * from tp.UnidadFuncional
 --EXEC tp.sp_ImportarPropietariosInquilinos_03'C:\Users\majo_\Documents\Bdaa25\Tp_Aplicada2025\Entregas-BBDDA\consorcios\Inquilino-propietarios-datos.csv'
 
 EXEC tp.sp_ImportarPersonas_03 'C:\Users\Camila Navarro\Grupo06\consorcios\Inquilino-propietarios-datos.csv'
-select * from tp.Persona
+
+select * 
+from tp.Persona
+FOR XML AUTO, ELEMENTS;
 
 -- 5) Cargar cbu a unidad funcional
 
 --EXEC tp.sp_ImportarPropietariosInquilinosUnidadFuncional_04 'C:\Users\Administrator\Desktop\TP_Base_de_datos_aplicada\Grupo06\consorcios\Inquilino-propietarios-UF.csv'
 
 EXEC tp.sp_ImportarPropietariosInquilinosUnidadFuncional_04 'C:\Users\Camila Navarro\Grupo06\consorcios\Inquilino-propietarios-UF.csv'
-select * from tp.UnidadFuncional
+
+--select * from tp.UnidadFuncional
 
 -- 6) IMPORTAR DATOS A PAGO
 
--- EXEC tp.sp_ImportarPagos_05 'C:\Users\Administrator\Desktop\TP_Base_de_datos_aplicada\Grupo06\consorcios\pagos_consorcios.csv'
+--EXEC tp.sp_ImportarPagos_05 'C:\Users\Administrator\Desktop\TP_Base_de_datos_aplicada\Grupo06\consorcios\pagos_consorcios.csv'
 
 EXEC tp.sp_ImportarPagos_05 'C:\Users\Camila Navarro\Grupo06\consorcios\pagos_consorcios.csv'
-select * from tp.Pago
+
+--select * 
+--from tp.Pago
+--FOR XML AUTO, ELEMENTS;
 
 --- 7) IMPORTAR FORMATO JSON
 
@@ -52,16 +65,20 @@ select * from tp.Pago
 
 EXEC tp.sp_ImportarServicios_06 'C:\Users\Camila Navarro\Grupo06\consorcios\Servicios.Servicios.json'
 
----SELECT * FROM TP.Expensa
-/*SELECT * FROM TP.GastoGeneral
-/*SELECT * FROM TP.GastoAdministracion
-SELECT * FROM TP.ServicioPublico
-SELECT * FROM TP.Seguro
-SELECT * FROM TP.Limpieza
-SELECT * FROM TP.EmpresaLimpieza
-SELECT * FROM TP.MantenimientoCtaBancaria	*/
+
+SELECT * FROM TP.Expensa FOR XML AUTO, ELEMENTS;
+SELECT * FROM TP.GastoGeneral FOR XML AUTO, ELEMENTS;
+SELECT * FROM TP.GastoAdministracion FOR XML AUTO, ELEMENTS;
+SELECT * FROM TP.ServicioPublico FOR XML AUTO, ELEMENTS;
+SELECT * FROM TP.Seguro FOR XML AUTO, ELEMENTS;
+SELECT * FROM TP.Limpieza FOR XML AUTO, ELEMENTS;
+SELECT * FROM TP.MantenimientoCtaBancaria FOR XML AUTO, ELEMENTS;
 
 -- 8) Cargar Gastos Extraordinarios manualmente
 
-EXEC tp.sp_CargarGastoExtraordinarioManual_06;
-select * from tp.GastoExtraordinario
+EXEC tp.sp_CargarGastoExtraordinarioManual_07;
+
+
+select * from tp.GastoExtraordinario FOR XML AUTO, ELEMENTS;
+
+
