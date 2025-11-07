@@ -54,7 +54,7 @@ CREATE TABLE tp.Consorcio (
   Nombre VARCHAR(30) primary key,
   Direccion VARCHAR(50) NOT NULL,
   CantUF INT NOT NULL,
-  SuperficieTotal DECIMAL(8,2) NULL,
+  SuperficieTotal DECIMAL(20,2) NULL,
   ID_Administracion INT NOT NULL,
   CONSTRAINT FK_Administracion FOREIGN KEY (ID_Administracion) REFERENCES tp.Administracion(ID_Administracion)
 );
@@ -67,14 +67,14 @@ TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'EstadoFinanciero')
 BEGIN
 
 CREATE TABLE tp.EstadoFinanciero (
- ID_EF INT PRIMARY KEY,
- Fecha SMALLDATETIME NOT NULL, --
- SaldoAnterior DECIMAL(8,2) NOT NULL CHECK(SaldoAnterior >= 0),
- IngresoPagoEnTermino DECIMAL(8,2) NOT NULL CHECK(IngresoPagoEnTermino >= 0),
- IngresoPagoAdeudado DECIMAL(8,2)  NOT NULL CHECK(IngresoPagoAdeudado>= 0),
- IngresoPagoAdelantado DECIMAL(8,2)  NOT NULL CHECK(IngresoPagoAdelantado >= 0),
- EgresoGastoMensual DECIMAL(8,2) NOT NULL CHECK(EgresoGastoMensual >= 0),
- SaldoAlCierre DECIMAL(8,2) NULL, --VER COMO SE CALCULA (SP, TRIGGER, ETC.)
+ ID_EF INT IDENTITY (1,1) PRIMARY KEY,
+ Fecha SMALLDATETIME NULL, --
+ SaldoAnterior DECIMAL(20,2) DEFAULT (0),
+ IngresoPagoEnTermino DECIMAL(20,2) DEFAULT (0),
+ IngresoPagoAdeudado DECIMAL(20,2)  DEFAULT (0),
+ IngresoPagoAdelantado DECIMAL(20,2) DEFAULT (0),
+ EgresoGastoMensual DECIMAL(20,2)   DEFAULT (0),
+ SaldoAlCierre DECIMAL(20,2) DEFAULT(0), --VER COMO SE CALCULA (SP, TRIGGER, ETC.)
  NombreConsorcio VARCHAR(30) NOT NULL,
  CONSTRAINT FK_Consorcio FOREIGN KEY (NombreConsorcio) REFERENCES tp.Consorcio(Nombre)
 );
@@ -88,7 +88,7 @@ BEGIN
 
 CREATE TABLE tp.Persona (
   CVU_CBU varchar(22),
-  Tipo INT NOT NULL CHECK (Tipo IN (0, 1)),
+  Tipo bit,
   DNI_Persona INT, --CHECK(LEN(DNI_Propietario)=8)
   Apellido VARCHAR(30) NOT NULL,
   Nombres VARCHAR(30) NOT NULL,
@@ -98,7 +98,7 @@ CREATE TABLE tp.Persona (
 );
 END
 go 
-
+go 
 
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
@@ -107,13 +107,13 @@ BEGIN
 
 CREATE TABLE tp.EstadodeCuenta (
   ID_EstadodeCuenta INT IDENTITY(1,1) PRIMARY KEY,
-  SaldoAnterior DECIMAL(8,2) NOT NULL CHECK(SaldoAnterior >= 0),
-  PagoRecibido DECIMAL(8,2) NOT NULL CHECK(PagoRecibido >= 0),
-  InteresPorMora1V DECIMAL (8,2) NOT NULL DEFAULT 0, --CALCULAR CON SP,
-  InteresPorMora2V DECIMAL (8,2) NOT NULL DEFAULT 0, --CALCULAR CON SP,
-  Deuda DECIMAL(8,2) NOT NULL DEFAULT 0, --CALCULAR CON SP
-  ImporteCochera DECIMAL(8,2) NOT NULL CHECK (ImporteCochera >=0) DEFAULT 0,
-  ImporteBaulera DECIMAL(8,2) NOT NULL CHECK (ImporteBaulera >=0) DEFAULT 0,
+  SaldoAnterior DECIMAL(20,2) NOT NULL CHECK(SaldoAnterior >= 0),
+  PagoRecibido DECIMAL(20,2) NOT NULL CHECK(PagoRecibido >= 0),
+  InteresPorMora1V DECIMAL (20,2) NOT NULL DEFAULT 0, --CALCULAR CON SP,
+  InteresPorMora2V DECIMAL (20,2) NOT NULL DEFAULT 0, --CALCULAR CON SP,
+  Deuda DECIMAL(20,2) NOT NULL DEFAULT 0, --CALCULAR CON SP
+  ImporteCochera DECIMAL(20,2) NOT NULL CHECK (ImporteCochera >=0) DEFAULT 0,
+  ImporteBaulera DECIMAL(20,2) NOT NULL CHECK (ImporteBaulera >=0) DEFAULT 0,
   );
 END
 go
@@ -135,11 +135,11 @@ CREATE TABLE tp.UnidadFuncional (
   M2_BAULERA INT NOT NULL CHECK (M2_BAULERA>=0),
   M2_COCHERA INT NOT NULL CHECK (M2_COCHERA>=0),
   CVU_CBU varchar(22),
-  Tipo INT,
+  Tipo BIT,
   ID_EstadodeCuenta INT NULL,
   CONSTRAINT PK_UNIDAD_FUNCIONAL PRIMARY KEY (ID_UF,NombreConsorcio),
   CONSTRAINT FK_UF_Consorcio FOREIGN KEY (NombreConsorcio) REFERENCES tp.Consorcio(Nombre),
-  CONSTRAINT FK_UF_Persona FOREIGN KEY (CVU_CBU, Tipo) REFERENCES tp.Persona(CVU_CBU, Tipo),
+  CONSTRAINT FK_UF_Persona FOREIGN KEY (CVU_CBU,Tipo) REFERENCES tp.Persona(CVU_CBU,Tipo),
   CONSTRAINT FK_UF_EstadodeCuenta FOREIGN KEY (ID_EstadodeCuenta) REFERENCES tp.EstadodeCuenta(ID_EstadodeCuenta)
 );
 END
@@ -153,12 +153,12 @@ BEGIN
 CREATE TABLE tp.Expensa (
   ID_Expensa INT IDENTITY(1,1) PRIMARY KEY,
   FechaEmision SMALLDATETIME NOT NULL,
-  TotalAPagar DECIMAL(8,4) NOT NULL, --CALCULAR CON SP
-  PrimerFechaVencimiento SMALLDATETIME NOT NULL,
-  SegundaFechaVencimiento SMALLDATETIME NOT NULL,
-  ID_UF INT NOT NULL,
+  TotalAPagar DECIMAL(20,4) NULL, --CALCULAR CON SP
+  PrimerFechaVencimiento SMALLDATETIME NULL,
+  SegundaFechaVencimiento SMALLDATETIME NULL,
+  ID_UF INT NULL,
   NombreConsorcio VARCHAR(30),
-  CONSTRAINT FK_EX_ID_UF FOREIGN KEY (ID_UF,NombreConsorcio) REFERENCES tp.UnidadFuncional(ID_UF,NombreConsorcio)
+  CONSTRAINT FK_EX_ID_UF FOREIGN KEY (ID_UF,NombreConsorcio) REFERENCES tp.UnidadFuncional(ID_UF,NombreConsorcio),
 );
 END
 go
@@ -172,7 +172,7 @@ BEGIN
 CREATE TABLE tp.GastoExtraordinario (
   ID_GastoExtraordinario INT IDENTITY(1,1) PRIMARY KEY,
   Tipo CHAR(1) NOT NULL CHECK(Tipo IN ('R', 'C')),
-  Importe DECIMAL(8,4) NOT NULL CHECK (Importe > 0),
+  Importe DECIMAL(20,4) NOT NULL CHECK (Importe > 0),
   Detalle VARCHAR (100) NOT NULL,
   NroCuota INT NOT NULL,
   ID_Expensa INT NOT NULL,
@@ -186,11 +186,11 @@ TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'GastoGeneral')
 
 BEGIN
 CREATE TABLE tp.GastoGeneral (
-  NRO_Factura INT PRIMARY KEY,
-  NombreEmpresa VARCHAR(20) NOT NULL,
-  NombrePersona VARCHAR(20) NOT NULL,
-  Importe DECIMAL(8,2) NOT NULL,
-  ID_Expensa INT NOT NULL,
+  NRO_Factura INT IDENTITY(1,1) PRIMARY KEY,
+  NombreEmpresa VARCHAR(30) DEFAULT ('EMPRESA DESCONOCIDA'),
+  NombrePersona VARCHAR(30) DEFAULT ('PERSONA DESCONOCIDA'),
+  Importe DECIMAL(20,2) DEFAULT (0),
+  ID_Expensa INT,
   CONSTRAINT FK_GG_Expensa FOREIGN KEY (ID_Expensa) REFERENCES tp.Expensa(ID_Expensa)
 );
 
@@ -203,9 +203,9 @@ TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'GastoAdministracion')
 
 BEGIN
 CREATE TABLE tp.GastoAdministracion (
-  NRO_Factura INT PRIMARY KEY,
-  Importe DECIMAL(8,2) NOT NULL,
-  ID_Expensa INT NOT NULL,
+  NRO_Factura INT IDENTITY(1,1) PRIMARY KEY,
+  Importe DECIMAL(20,2) NOT NULL,
+  ID_Expensa INT NULL,
   CONSTRAINT FK_GA_Expensa FOREIGN KEY (ID_Expensa) REFERENCES tp.Expensa(ID_Expensa)
 );
 
@@ -218,11 +218,11 @@ TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'ServicioPublico')
 
 BEGIN
 CREATE TABLE tp.ServicioPublico (
-  NRO_Factura INT PRIMARY KEY,
-  ImporteLuz DECIMAL(8,2) NOT NULL,
-  ImporteAgua DECIMAL(8,2) NOT NULL,
-  ImporteInternet DECIMAL(8,2) NOT NULL DEFAULT 0,
-  ID_Expensa INT NOT NULL,
+  NRO_Factura INT IDENTITY(1,1) PRIMARY KEY,
+  ImporteLuz DECIMAL(20,2)  DEFAULT 0,
+  ImporteAgua DECIMAL(20,2) DEFAULT 0,
+  ImporteInternet DECIMAL(20,2) DEFAULT 0,
+  ID_Expensa INT  NULL,
   CONSTRAINT FK_SP_Expensa FOREIGN KEY (ID_Expensa) REFERENCES tp.Expensa(ID_Expensa)
 );
 
@@ -234,14 +234,12 @@ TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Seguro')
 
 BEGIN
 CREATE TABLE tp.Seguro (
-  NRO_Factura INT PRIMARY KEY,
-  NombreEmpresaSeguro VARCHAR(20) NOT NULL,
-  Importe DECIMAL(8,2) NOT NULL,
-  ID_Expensa INT NOT NULL,
+  NRO_Factura INT IDENTITY(1,1) PRIMARY KEY,
+  NombreEmpresaSeguro VARCHAR(30) DEFAULT ('EMPRESA DESCONOCIDA'),
+  Importe DECIMAL(20,2) NULL,
+  ID_Expensa INT NULL,
   CONSTRAINT FK_S_Expensa FOREIGN KEY (ID_Expensa) REFERENCES tp.Expensa(ID_Expensa)
 );
-
-
 END
 go
 
@@ -250,8 +248,8 @@ TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Limpieza')
 
 BEGIN
 CREATE TABLE tp.Limpieza (
-  NRO_FacturaLimpieza INT PRIMARY KEY,
-  ID_Expensa INT NOT NULL,
+  NRO_Factura INT IDENTITY(1,1) PRIMARY KEY,
+  ID_Expensa INT NULL,
   Tipo CHAR (1) NOT NULL CHECK (Tipo IN ('S', 'E')),
   CONSTRAINT FK_L_Expensa FOREIGN KEY (ID_Expensa) REFERENCES tp.Expensa(ID_Expensa)
 );
@@ -266,9 +264,9 @@ TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'ServicioDomesticoLimpieza')
 BEGIN
 CREATE TABLE tp.ServicioDomesticoLimpieza (
   NRO_FacturaLimpieza INT PRIMARY KEY,
-  SueldoEmpleado DECIMAL (8,2) NOT NULL,
-  ImporteProductos DECIMAL(8,2) NOT NULL,
-  CONSTRAINT FK_SD_NRO_FacturaLimpieza FOREIGN KEY (NRO_FacturaLimpieza) REFERENCES tp.Limpieza(NRO_FacturaLimpieza)
+  SueldoEmpleado DECIMAL (20,2)  DEFAULT 0,
+  ImporteProductos DECIMAL(20,2)  DEFAULT 0,
+  CONSTRAINT FK_SD_NRO_FacturaLimpieza FOREIGN KEY (NRO_FacturaLimpieza) REFERENCES tp.Limpieza(NRO_Factura)
 );
 
 END
@@ -280,9 +278,9 @@ TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'EmpresaLimpieza')
 BEGIN
 CREATE TABLE tp.EmpresaLimpieza (
   NRO_FacturaLimpieza INT PRIMARY KEY,
-  NombreEmpresaLimpieza VARCHAR(30) NOT NULL,
-  Importe DECIMAL(8,2) NOT NULL,
-  CONSTRAINT FK_EL_NRO_FacturaLimpieza FOREIGN KEY (NRO_FacturaLimpieza) REFERENCES tp.Limpieza(NRO_FacturaLimpieza)
+  NombreEmpresaLimpieza VARCHAR(30) NULL,
+  Importe DECIMAL(20,2) DEFAULT 0,
+  CONSTRAINT FK_EL_NRO_FacturaLimpieza FOREIGN KEY (NRO_FacturaLimpieza) REFERENCES tp.Limpieza(NRO_Factura)
 );
 
 
@@ -294,10 +292,10 @@ TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'MantenimientoCtaBancaria')
 
 BEGIN
 CREATE TABLE tp.MantenimientoCtaBancaria (
-  NRO_Cuenta INT PRIMARY KEY,
-  EntidadBanco VARCHAR(30) NOT NULL,
-  Importe DECIMAL(8,2) NOT NULL,
-  ID_Expensa INT NOT NULL,
+  NRO_Cuenta INT IDENTITY(1,1) PRIMARY KEY,
+  EntidadBanco VARCHAR(30)  NULL,
+  Importe DECIMAL(20,2) NOT NULL,
+  ID_Expensa INT NULL,
   CONSTRAINT FK_MCB_Expensa FOREIGN KEY (ID_Expensa) REFERENCES tp.Expensa(ID_Expensa)
 );
 
@@ -310,10 +308,11 @@ TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Pago')
 BEGIN
 CREATE TABLE tp.Pago (
   ID_Pago INT PRIMARY KEY,
-  --Fecha_Pago SMALLDATETIME NOT NULL,
-  Importe DECIMAL (8,2) NOT NULL,
-  Estado VARCHAR (15) NOT NULL CHECK (Estado IN ('Pagado', 'No Pagado')),
-  ID_Expensa INT NOT NULL,
+  Fecha_Pago DATE NOT NULL,
+  Importe DECIMAL (20,4) NOT NULL,
+  --Estado VARCHAR (15) NOT NULL CHECK (Estado IN ('Pagado', 'No Pagado')),
+  CVU_CBU VARCHAR(22),
+  ID_Expensa INT NULL,
   CONSTRAINT FK_P_Expensa FOREIGN KEY (ID_Expensa) REFERENCES tp.Expensa(ID_Expensa)
 );
 END
@@ -325,13 +324,13 @@ go
 -- 1) SP Importar datos administración
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
-    WHERE object_id = OBJECT_ID(N'tp.sp_ImportarAdministracion_00') AND type = 'P')
+    WHERE object_id = OBJECT_ID(N'tp.ImportarAdministracion_00') AND type = 'P')
 BEGIN
-    EXEC('CREATE PROCEDURE tp.sp_ImportarAdministracion_00 AS BEGIN SET NOCOUNT ON; END') --SE NECESITA SQL DINAMICO PORQUE SQL NO PERMITE CREAR UN SP DENTRO DE UN BLOQUE CONDICIONAL DIRECTAMENTE
+    EXEC('CREATE PROCEDURE tp.ImportarAdministracion_00 AS BEGIN SET NOCOUNT ON; END') --SE NECESITA SQL DINAMICO PORQUE SQL NO PERMITE CREAR UN SP DENTRO DE UN BLOQUE CONDICIONAL DIRECTAMENTE
 END
 GO
 
-CREATE OR ALTER PROCEDURE tp.sp_ImportarAdministracion_00
+CREATE OR ALTER PROCEDURE tp.ImportarAdministracion_00
 AS
 BEGIN
 	INSERT INTO tp.Administracion (Nombre, Direccion, CorreoElectronico, Telefono)
@@ -339,18 +338,16 @@ BEGIN
 END;
 GO
 
-
-
 -- 2) SP Importar datos consorcio
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
-    WHERE object_id = OBJECT_ID(N'tp.sp_ImportarConsorcio_01') AND type = 'P')
+    WHERE object_id = OBJECT_ID(N'tp.ImportarConsorcio_01') AND type = 'P')
 BEGIN
-    EXEC('CREATE PROCEDURE tp.sp_ImportarConsorcio_01 AS BEGIN SET NOCOUNT ON; END') --SE NECESITA SQL DINAMICO PORQUE SQL NO PERMITE CREAR UN SP DENTRO DE UN BLOQUE CONDICIONAL DIRECTAMENTE
+    EXEC('CREATE PROCEDURE tp.ImportarConsorcio_01 AS BEGIN SET NOCOUNT ON; END') --SE NECESITA SQL DINAMICO PORQUE SQL NO PERMITE CREAR UN SP DENTRO DE UN BLOQUE CONDICIONAL DIRECTAMENTE
 END
 GO
 
-CREATE OR ALTER PROCEDURE tp.sp_ImportarConsorcio_01
+CREATE OR ALTER PROCEDURE tp.ImportarConsorcio_01
 @RutaArchivo NVARCHAR(260)
 AS
 BEGIN
@@ -363,7 +360,7 @@ BEGIN
         Nombre VARCHAR(30),
         Direccion VARCHAR(50),
         CantUF INT,
-        SuperficieTotal DECIMAL(8,2)
+        SuperficieTotal DECIMAL(20,2)
     );
 
 	 -- Importar archivo CSV
@@ -378,6 +375,8 @@ BEGIN
 		);';
 
 	EXEC(@Sql);
+
+	SELECT * FROM #ConsorcioTemp
 
     -- Obtener ID_Administracion (ejemplo: el primero disponible)
     DECLARE @ID_Administracion INT;
@@ -394,15 +393,16 @@ END;
 GO
 
 -- 3) SP Importar datos Unidad Funcional txt
+
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
-    WHERE object_id = OBJECT_ID(N'tp.sp_ImportarUnidadFuncional_02 ') AND type = 'P')
+    WHERE object_id = OBJECT_ID(N'TP.ImportarUnidadFuncional_02 ') AND type = 'P')
 BEGIN
-    EXEC('CREATE PROCEDURE tp.sp_ImportarUnidadFuncional_02 AS BEGIN SET NOCOUNT ON; END')
+    EXEC('CREATE PROCEDURE TP.ImportarUnidadFuncional_02 AS BEGIN SET NOCOUNT ON; END')
 END
 GO
 
-CREATE OR ALTER PROCEDURE tp.sp_ImportarUnidadFuncional_02
+CREATE OR ALTER PROCEDURE TP.ImportarUnidadFuncional_02
 @RutaArchivo NVARCHAR(260)
 AS
 BEGIN
@@ -451,8 +451,7 @@ BEGIN
 
 END
 
-
--- 4) SP Importar datos Personas
+-- 4) SP Importar datos propietarios e inquilinos
 
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
@@ -508,23 +507,14 @@ BEGIN
 end
 go
 
-
-
 -- 5) SP Importar CBU_CVU a unidad funcional
-
-IF NOT EXISTS (
-    SELECT * FROM sys.objects 
-    WHERE object_id = OBJECT_ID(N'tp.sp_ImportarPropietariosInquilinosUnidadFuncional_04') AND type = 'P')
-BEGIN
-    EXEC('CREATE PROCEDURE tp.sp_ImportarPropietariosInquilinosUnidadFuncional_04 AS BEGIN SET NOCOUNT ON; END')
-END
-GO
 
 create or ALTER PROCEDURE tp.sp_ImportarPropietariosInquilinosUnidadFuncional_04
 @RutaArchivo NVARCHAR(260)
 AS
 BEGIN
     SET NOCOUNT ON;
+	
 	CREATE TABLE #TempDatos ( 
 	CVU_CBU VARCHAR(22),
     NOMBRE_CONSORCIO VARCHAR(100),
@@ -549,18 +539,190 @@ BEGIN
 
 	
 	    UPDATE uf
-        SET 
-             uf.CVU_CBU = t.CVU_CBU,
-             uf.Tipo = p.Tipo
-    FROM tp.UnidadFuncional AS uf
-    INNER JOIN #TempDatos AS t
-        ON uf.ID_UF = t.NUM_UNIDAD_FUNCIONAL
+        SET uf.CVU_CBU = t.CVU_CBU,uf.Tipo = p.Tipo
+		FROM tp.UnidadFuncional AS uf
+		INNER JOIN #TempDatos AS t ON uf.ID_UF = t.NUM_UNIDAD_FUNCIONAL
         AND uf.NombreConsorcio = t.NOMBRE_CONSORCIO
         AND uf.Piso = t.PISO
         AND uf.Departamento = t.Departamento
-    INNER JOIN tp.Persona AS p
+		INNER JOIN tp.Persona AS p
         ON p.CVU_CBU = t.CVU_CBU;
 	
-
 	DROP TABLE #TempDatos;
 END
+go
+
+-- 6) Sp importar pagos
+
+create or ALTER PROCEDURE tp.sp_ImportarPagos_05
+@RutaArchivo NVARCHAR(260)
+AS
+BEGIN
+	
+	SET NOCOUNT ON;
+
+	CREATE TABLE #PagosTemp (
+        IdPago INT,
+        Fecha NVARCHAR(20),
+        CVU_CBU VARCHAR(22),
+        Valor NVARCHAR(30));
+
+	DECLARE @Sql NVARCHAR(MAX);
+	SET @Sql = '
+		BULK INSERT #PagosTemp 
+		FROM ''' + @RutaArchivo + '''
+		WITH (
+		FIELDTERMINATOR = '','',
+		ROWTERMINATOR = ''\n'',
+		FIRSTROW = 2
+		);';
+
+	EXEC(@Sql);
+
+	INSERT INTO tp.PAGO(ID_Pago,Fecha_Pago,CVU_CBU,Importe)
+    SELECT IdPago,
+    CONVERT(DATE, Fecha, 103),  -- formato dd/mm/yyyy
+    CVU_CBU,
+    TRY_CAST(REPLACE(Valor, '$', '') AS DECIMAL(13,4))
+    FROM #PagosTemp t
+	WHERE t.IdPago is not null and cvu_cbu in (select CVU_CBU from tp.Persona);
+
+    DROP TABLE #PagosTemp; 
+
+END 
+GO
+
+-- 7) IMPORTAR DATOS DE SERVICIO FORMATO JSON
+
+
+create or alter PROCEDURE tp.sp_ImportarFormatoJson_06
+@RutaArchivo NVARCHAR(260)
+AS
+begin
+	
+	create table #temp(
+	NOMBRE_CONSORCIO VARCHAR(100),
+	FECHA DATE,
+	BANCARIOS DECIMAL(20,2),
+	LIMPIEZA DECIMAL(20,2),
+	ADMINISTRACION DECIMAL(20,2),
+	SEGUROS DECIMAL(20,2),
+	GASTOS_GENERALES DECIMAL(20,2),
+	SERVICIOS_PUBLICOS_Agua DECIMAL(20,2),
+	SERVICIOS_PUBLICOS_Luz DECIMAL(20,2));
+
+	
+	    DECLARE @SQL NVARCHAR(MAX);
+
+    SET @SQL = N'
+    INSERT INTO #temp
+    SELECT 
+        NOMBRE_CONSORCIO,
+        DATEFROMPARTS(
+            2025,
+            CASE LOWER(MES)
+                WHEN ''enero'' THEN 1
+                WHEN ''febrero'' THEN 2
+                WHEN ''marzo'' THEN 3
+                WHEN ''abril'' THEN 4
+                WHEN ''mayo'' THEN 5
+                WHEN ''junio'' THEN 6
+                WHEN ''julio'' THEN 7
+                WHEN ''agosto'' THEN 8
+                WHEN ''septiembre'' THEN 9
+                WHEN ''octubre'' THEN 10
+                WHEN ''noviembre'' THEN 11
+                WHEN ''diciembre'' THEN 12
+            END,
+            25
+        ),
+        TRY_CAST(REPLACE(REPLACE(BANCARIOS, '','', ''''), ''.'','''') AS DECIMAL(20,2)) / 100,
+        TRY_CAST(REPLACE(REPLACE(LIMPIEZA, '','', ''''), ''.'','''') AS DECIMAL(20,2)) / 100,
+        TRY_CAST(REPLACE(REPLACE(ADMINISTRACION, '','', ''''), ''.'','''') AS DECIMAL(20,2)) / 100,
+        TRY_CAST(REPLACE(REPLACE(SEGUROS, '','', ''''), ''.'','''') AS DECIMAL(20,2)) / 100,
+        TRY_CAST(REPLACE(REPLACE(GASTOS_GENERALES, '','', ''''), ''.'','''') AS DECIMAL(20,2)) / 100,
+        TRY_CAST(REPLACE(REPLACE(SERVICIOS_PUBLICOS_Agua, '','', ''''), ''.'','''') AS DECIMAL(20,2)) / 100,
+        TRY_CAST(REPLACE(REPLACE(SERVICIOS_PUBLICOS_Luz, '','', ''''), ''.'','''') AS DECIMAL(20,2)) / 100
+    FROM OPENROWSET (BULK ''' + @RutaArchivo + ''', SINGLE_CLOB) AS json
+    CROSS APPLY OPENJSON(json.BulkColumn)
+    WITH (
+        NOMBRE_CONSORCIO VARCHAR(100) ''$."Nombre del consorcio"'',
+        MES VARCHAR(20) ''$."Mes"'',
+        BANCARIOS VARCHAR(30) ''$."BANCARIOS"'',
+        LIMPIEZA VARCHAR(30) ''$."LIMPIEZA"'',
+        ADMINISTRACION VARCHAR(30) ''$."ADMINISTRACION"'',
+        SEGUROS VARCHAR(30) ''$."SEGUROS"'',
+        GASTOS_GENERALES VARCHAR(30) ''$."GASTOS GENERALES"'',
+        SERVICIOS_PUBLICOS_Agua VARCHAR(30) ''$."SERVICIOS PUBLICOS-Agua"'',
+        SERVICIOS_PUBLICOS_Luz VARCHAR(30) ''$."SERVICIOS PUBLICOS-Luz"''
+    ) AS JsonData;';
+
+    -- Ejecutar la consulta dinámica
+    EXEC sp_executesql @SQL;
+
+	INSERT INTO TP.EstadoFinanciero (NombreConsorcio,EgresoGastoMensual,Fecha)
+	SELECT NOMBRE_CONSORCIO,BANCARIOS+LIMPIEZA+ADMINISTRACION+SEGUROS+GASTOS_GENERALES+SERVICIOS_PUBLICOS_Agua+SERVICIOS_PUBLICOS_Luz,FECHA
+	FROM #temp
+	where NOMBRE_CONSORCIO IS NOT NULL
+
+	INSERT INTO TP.Expensa(NombreConsorcio,FechaEmision,PrimerFechaVencimiento,SegundaFechaVencimiento,ID_UF,TotalAPagar) 
+	SELECT T.NOMBRE_CONSORCIO,T.FECHA, DATEADD(DAY,10, T.FECHA), DATEADD(DAY,15, T.FECHA),U.ID_UF,
+	(t.ADMINISTRACION+t.BANCARIOS+t.GASTOS_GENERALES+t.LIMPIEZA+t.SEGUROS+t.SERVICIOS_PUBLICOS_Agua+t.SERVICIOS_PUBLICOS_Luz)
+	FROM #temp T
+	INNER JOIN TP.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
+	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL 
+
+	INSERT INTO TP.GastoGeneral(Importe,ID_Expensa) 
+	SELECT T.GASTOS_GENERALES*0.01*U.PorcentajeProrrateo,
+	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
+	FROM #temp T
+	INNER JOIN TP.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
+	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL 
+
+	INSERT INTO TP.GastoAdministracion(Importe,ID_Expensa) 
+	SELECT T.ADMINISTRACION*0.01*U.PorcentajeProrrateo,
+	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
+	FROM #temp T
+	INNER JOIN TP.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
+	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL 
+
+	INSERT INTO TP.Seguro (Importe,ID_Expensa)
+	SELECT T.SEGUROS*0.01*U.PorcentajeProrrateo,
+	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
+	FROM #temp T
+	INNER JOIN TP.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
+	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL 
+
+	INSERT INTO TP.MantenimientoCtaBancaria (Importe,id_expensa)
+	SELECT T.BANCARIOS*0.01*U.PorcentajeProrrateo,
+	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
+	FROM #temp T
+	INNER JOIN TP.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
+	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL 
+
+	INSERT INTO TP.ServicioPublico (ImporteAgua,ImporteLuz,ID_Expensa)
+	SELECT T.SERVICIOS_PUBLICOS_Agua*0.01*U.PorcentajeProrrateo,T.SERVICIOS_PUBLICOS_Luz*0.01*U.PorcentajeProrrateo,
+	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
+	FROM #temp T
+	INNER JOIN TP.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
+	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL 
+
+	DECLARE @a INT = 1;
+
+	WHILE @a <= 405
+	BEGIN
+		INSERT INTO TP.Limpieza(ID_Expensa,Tipo) values (@a,'e')
+		SET @a = @a + 1;
+	END
+	
+	INSERT INTO TP.EmpresaLimpieza (Importe,NRO_FacturaLimpieza)
+	SELECT T.LIMPIEZA*0.01*U.PorcentajeProrrateo,
+	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
+	FROM #temp T
+	INNER JOIN TP.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
+	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL 
+
+	drop table #temp
+end
+GO
+
