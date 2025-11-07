@@ -726,3 +726,49 @@ begin
 end
 GO
 
+-- 8) SP cargar tabla Gastos extraordinarios manualmente
+
+IF NOT EXISTS (
+    SELECT * FROM sys.objects 
+    WHERE object_id = OBJECT_ID(N'tp.sp_CargarGastoExtraordinarioManual_06') AND type = 'P')
+BEGIN
+    EXEC('CREATE PROCEDURE tp.sp_CargarGastoExtraordinarioManual_06 AS BEGIN SELECT 1 END') 
+END
+GO
+
+CREATE OR ALTER PROCEDURE tp.sp_CargarGastoExtraordinarioManual_06
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    CREATE TABLE #TempGastosExt (
+        Tipo CHAR(1),
+        Importe DECIMAL(8,4),
+        Detalle VARCHAR (100),
+        NroCuota INT,
+        ID_Expensa INT
+    );
+    
+    -- 2. Carga manual de los datos de ejemplo en la tabla temporal
+    INSERT INTO #TempGastosExt (Tipo, Importe, Detalle, NroCuota, ID_Expensa)
+    VALUES 
+    -- Datos de ejemplo
+    ('R', 1500.5000, 'Reparación de ascensor (cuota 1/3)', 1, 101),
+    ('C', 8500.0000, 'Fondo de reserva para pintura exterior', 5, 102),
+    ('R', 230.7500, 'Cambio de luminarias en pasillo', 1, 103),
+    ('C', 9999.9999, 'Instalación de cámaras de seguridad', 1, 104), 
+    ('R', 450.0000, 'Arreglo de bomba de agua (cuota 2/2)', 2, 105),
+    ('R', 1500.5000, 'Reparación de ascensor (cuota 2/3)', 2, 101),
+    ('C', 3000.0000, 'Compra de extintores nuevos', 1, 106),
+    ('R', 75.2500, 'Desobstrucción de cañería', 1, 107),
+    ('R', 1500.5000, 'Reparación de ascensor (cuota 3/3)', 3, 101),
+    ('C', 500.0000, 'Reemplazo de buzón roto', 1, 108);
+    
+    -- 3. Mover los datos de la tabla temporal a la tabla final (tp.GastoExtraordinario)
+    INSERT INTO tp.GastoExtraordinario (Tipo, Importe, Detalle, NroCuota, ID_Expensa)
+    SELECT Tipo, Importe, Detalle, NroCuota, ID_Expensa 
+    FROM  #TempGastosExt;
+    
+    -- La tabla temporal #TempGastosExt se elimina automáticamente al finalizar el SP.
+END
+GO

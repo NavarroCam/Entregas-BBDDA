@@ -55,3 +55,8 @@ SELECT * FROM TP.Seguro
 SELECT * FROM TP.Limpieza
 SELECT * FROM TP.EmpresaLimpieza
 SELECT * FROM TP.MantenimientoCtaBancaria	*/
+
+-- 8) Cargar Gastos Extraordinarios manualmente
+
+EXEC tp.sp_CargarGastoExtraordinarioManual_06;
+select * from tp.GastoExtraordinario
