@@ -102,24 +102,6 @@ go
 
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
-TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'EstadodeCuenta')
-BEGIN
-
-CREATE TABLE tp.EstadodeCuenta (
-  ID_EstadodeCuenta INT IDENTITY(1,1) PRIMARY KEY,
-  SaldoAnterior DECIMAL(20,2) NOT NULL CHECK(SaldoAnterior >= 0),
-  PagoRecibido DECIMAL(20,2) NOT NULL CHECK(PagoRecibido >= 0),
-  InteresPorMora1V DECIMAL (20,2) NOT NULL DEFAULT 0,
-  InteresPorMora2V DECIMAL (20,2) NOT NULL DEFAULT 0, 
-  Deuda DECIMAL(20,2) NOT NULL DEFAULT 0,
-  ImporteCochera DECIMAL(20,2) NOT NULL CHECK (ImporteCochera >=0) DEFAULT 0,
-  ImporteBaulera DECIMAL(20,2) NOT NULL CHECK (ImporteBaulera >=0) DEFAULT 0,
-  );
-END
-go
-
-
-IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
 TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'UnidadFuncional')
 BEGIN
 
@@ -136,14 +118,34 @@ CREATE TABLE tp.UnidadFuncional (
   M2_COCHERA INT NOT NULL CHECK (M2_COCHERA>=0),
   CVU_CBU varchar(22),
   Tipo BIT,
-  ID_EstadodeCuenta INT NULL,
   CONSTRAINT PK_UNIDAD_FUNCIONAL PRIMARY KEY (ID_UF,NombreConsorcio),
   CONSTRAINT FK_UF_Consorcio FOREIGN KEY (NombreConsorcio) REFERENCES tp.Consorcio(Nombre),
   CONSTRAINT FK_UF_Persona FOREIGN KEY (CVU_CBU,Tipo) REFERENCES tp.Persona(CVU_CBU,Tipo),
-  CONSTRAINT FK_UF_EstadodeCuenta FOREIGN KEY (ID_EstadodeCuenta) REFERENCES tp.EstadodeCuenta(ID_EstadodeCuenta)
 );
 END
 go
+
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
+TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'EstadodeCuenta')
+BEGIN
+
+CREATE TABLE tp.EstadodeCuenta (
+  ID_EstadodeCuenta INT IDENTITY(1,1) PRIMARY KEY,
+  Fecha SMALLDATETIME,
+  SaldoAnterior DECIMAL(20,2) NOT NULL CHECK(SaldoAnterior >= 0),
+  PagoRecibido DECIMAL(20,2) NOT NULL CHECK(PagoRecibido >= 0),
+  InteresPorMora1V DECIMAL (20,2) NOT NULL DEFAULT 0,
+  InteresPorMora2V DECIMAL (20,2) NOT NULL DEFAULT 0, 
+  Deuda DECIMAL(20,2) NOT NULL DEFAULT 0,
+  ImporteCochera DECIMAL(20,2) NOT NULL CHECK (ImporteCochera >=0) DEFAULT 0,
+  ImporteBaulera DECIMAL(20,2) NOT NULL CHECK (ImporteBaulera >=0) DEFAULT 0,
+  ID_UF INT,
+  NombreConsorcio VARCHAR(30),
+  CONSTRAINT FK_ESTADO_DE_CUENTA FOREIGN KEY (ID_UF,NombreConsorcio) REFERENCES TP.UnidadFuncional (ID_UF,NombreConsorcio)
+  );
+END
+go
+
 
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
@@ -769,3 +771,44 @@ BEGIN
 	-- La tabla temporal #TempGastosExt se elimina automáticamente al finalizar el SP.
 END
 GO
+
+-- 9) SP CARGAR AL IMPORTE TOTAL EL COSTO DE LAS BAULERAS Y COCHERAS
+
+create or alter procedure TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08
+@COSTE_M2_BAULERA INT, @COSTE_M2_COCHERA INT, @CONSORCIO VARCHAR(30)
+AS
+BEGIN
+
+	UPDATE E
+	SET	E.TotalAPagar= E.TotalAPagar + @COSTE_M2_BAULERA*U.M2_BAULERA
+	FROM TP.Expensa E
+	INNER JOIN TP.UNIDADFUNCIONAL U ON E.ID_UF=U.ID_UF AND E.NombreConsorcio=U.NombreConsorcio
+	WHERE U.BAULERA='si' AND U.NombreConsorcio=@CONSORCIO;
+
+	UPDATE E
+	SET	E.TotalAPagar= E.TotalAPagar + @COSTE_M2_COCHERA*U.M2_COCHERA
+	FROM TP.Expensa E
+	INNER JOIN TP.UNIDADFUNCIONAL U ON E.ID_UF=U.ID_UF AND E.NombreConsorcio=U.NombreConsorcio
+	WHERE U.COCHERA='si' AND U.NombreConsorcio=@CONSORCIO;
+
+END
+
+
+-- 10) SP CARGAR TABLA ESTADO DE CUENTA 
+
+/*
+create or alter procedure TP.SP_GenerarEstadoDeCuentA_09
+@FECHA SMALLDATETIME
+AS
+BEGIN
+	
+	INSERT INTO TP.EstadodeCuenta(FECHA,ID_UF,NombreConsorcio
+	SELECT E.FechaEmision,ID_UF,NombreConsorcio,
+	FROM TP.Expensa E
+	INNER JOIN TP.UnidadFuncional U ON U.ID_UF=E.ID_UF AND U.NombreConsorcio=E.NombreConsorcio
+	WHERE E.FechaEmision='2025-04-25 00:00:00'
+
+	SELECT * 
+	FROM TP.EstadodeCuenta
+
+END */
