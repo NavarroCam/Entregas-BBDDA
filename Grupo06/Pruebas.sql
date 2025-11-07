@@ -1,37 +1,5 @@
 --Cam ☻
 ---------------------------------------- SP CALCULAR INTERESES Y DEUDA TABLA ESTADO DE CUENTAS ------------------------------
---ESTO IRIA EN LA CONSULTA DE "GenerarObjetos.sql"
-CREATE OR ALTER PROCEDURE tp.SP_CalcularInteresesYDeuda
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    UPDATE tp.EstadodeCuenta
-    SET 
-        InteresPorMora1V = SaldoAnterior * 0.02,  -- Calcula el interés por mora del 1° vencimiento como el 2% del saldo anterior
-        InteresPorMora2V = CASE                     -- Calcula el interés del 2° vencimiento (5%) 
-                              WHEN PagoRecibido < SaldoAnterior 
-                              THEN (SaldoAnterior - PagoRecibido) * 0.05   -- solo si el pago recibido es menor que el saldo anterior.
-                              ELSE 0    -- Si no hay mora (pago completo o mayor), el interés es 0.
-                           END,
-        -- Calcula la deuda total:
-        Deuda = (SaldoAnterior - PagoRecibido)
-                + (SaldoAnterior * 0.02)
-                + CASE 
-                     WHEN PagoRecibido < SaldoAnterior THEN (SaldoAnterior - PagoRecibido) * 0.05
-                     ELSE 0
-                  END
-                + ImporteCochera
-                + ImporteBaulera;
-END;
-GO
-
-
---ESTO IRIA EN LA CONSULTA DE "InsertarDatos.sql"
-EXEC tp.SP_CalcularInteresesYDeuda;
-
-
-
 
 --ESTO IRIA EN LA CONSULTA DE "GenerarObjetos.sql" 
 -- PASO 1 ####### GENERAR DATOS ADMINISTRACION 
@@ -170,19 +138,6 @@ ORDER BY NombreConsorcio
 
 
 
-
-
-
-
---PASO 7 ####### SP IMPORTACION DE DNI PROPIETARIO A UNIDAD FUNCIONAL
-
-
-
--- PASO 8 ##### 
-
-
--- Javi	 @@@@@@@@@@
-
 -- cargar las expensas por nombre de consorcio
 
 GO
@@ -270,6 +225,10 @@ AS
 	--INNER JOIN tp.Limpieza l ON ex.ID_Expensa=l.ID_Expensa
 	--INNER JOIN tp.MantenimientoCtaBancaria mcb ON ex.ID_Expensa=mcb.ID_Expensa
 GO
+
+
+
+
 
 go
 CREATE OR ALTER PROCEDURE tp.sp_importarGastosOrdinarios

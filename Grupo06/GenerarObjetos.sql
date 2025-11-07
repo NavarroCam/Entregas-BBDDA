@@ -89,7 +89,7 @@ BEGIN
 CREATE TABLE tp.Persona (
   CVU_CBU varchar(22),
   Tipo bit,
-  DNI_Persona INT, --CHECK(LEN(DNI_Propietario)=8)
+  DNI_Persona INT,
   Apellido VARCHAR(30) NOT NULL,
   Nombres VARCHAR(30) NOT NULL,
   CorreoElectronico VARCHAR(50) NOT NULL,
@@ -109,9 +109,9 @@ CREATE TABLE tp.EstadodeCuenta (
   ID_EstadodeCuenta INT IDENTITY(1,1) PRIMARY KEY,
   SaldoAnterior DECIMAL(20,2) NOT NULL CHECK(SaldoAnterior >= 0),
   PagoRecibido DECIMAL(20,2) NOT NULL CHECK(PagoRecibido >= 0),
-  InteresPorMora1V DECIMAL (20,2) NOT NULL DEFAULT 0, --CALCULAR CON SP,
-  InteresPorMora2V DECIMAL (20,2) NOT NULL DEFAULT 0, --CALCULAR CON SP,
-  Deuda DECIMAL(20,2) NOT NULL DEFAULT 0, --CALCULAR CON SP
+  InteresPorMora1V DECIMAL (20,2) NOT NULL DEFAULT 0,
+  InteresPorMora2V DECIMAL (20,2) NOT NULL DEFAULT 0, 
+  Deuda DECIMAL(20,2) NOT NULL DEFAULT 0,
   ImporteCochera DECIMAL(20,2) NOT NULL CHECK (ImporteCochera >=0) DEFAULT 0,
   ImporteBaulera DECIMAL(20,2) NOT NULL CHECK (ImporteBaulera >=0) DEFAULT 0,
   );
@@ -128,7 +128,7 @@ CREATE TABLE tp.UnidadFuncional (
   NombreConsorcio VARCHAR(30),
   Piso VARCHAR(2) NOT NULL,
   Departamento VARCHAR(3) NOT NULL,
-  PorcentajeProrrateo DECIMAL (5,4) NOT NULL, --CALCULAR CON SP --- coeficiente del TXT?????
+  PorcentajeProrrateo DECIMAL (5,4) NOT NULL,
   M2_Unidad DECIMAL(4,2) NULL,
   BAULERA CHAR(2) NOT NULL,
   COCHERA CHAR(2) NOT NULL,
@@ -153,7 +153,7 @@ BEGIN
 CREATE TABLE tp.Expensa (
   ID_Expensa INT IDENTITY(1,1) PRIMARY KEY,
   FechaEmision SMALLDATETIME NOT NULL,
-  TotalAPagar DECIMAL(20,4) NULL, --CALCULAR CON SP
+  TotalAPagar DECIMAL(20,4) NULL,
   PrimerFechaVencimiento SMALLDATETIME NULL,
   SegundaFechaVencimiento SMALLDATETIME NULL,
   ID_UF INT NULL,
@@ -310,7 +310,6 @@ CREATE TABLE tp.Pago (
   ID_Pago INT PRIMARY KEY,
   Fecha_Pago DATE NOT NULL,
   Importe DECIMAL (20,4) NOT NULL,
-  --Estado VARCHAR (15) NOT NULL CHECK (Estado IN ('Pagado', 'No Pagado')),
   CVU_CBU VARCHAR(22),
   ID_Expensa INT NULL,
   CONSTRAINT FK_P_Expensa FOREIGN KEY (ID_Expensa) REFERENCES tp.Expensa(ID_Expensa)
@@ -324,13 +323,13 @@ go
 -- 1) SP Importar datos administración
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
-    WHERE object_id = OBJECT_ID(N'tp.ImportarAdministracion_00') AND type = 'P')
+    WHERE object_id = OBJECT_ID(N'tp.sp_ImportarAdministracion_00') AND type = 'P')
 BEGIN
-    EXEC('CREATE PROCEDURE tp.ImportarAdministracion_00 AS BEGIN SET NOCOUNT ON; END') --SE NECESITA SQL DINAMICO PORQUE SQL NO PERMITE CREAR UN SP DENTRO DE UN BLOQUE CONDICIONAL DIRECTAMENTE
+    EXEC('CREATE PROCEDURE tp.sp_ImportarAdministracion_00 AS BEGIN SET NOCOUNT ON; END') --SE NECESITA SQL DINAMICO PORQUE SQL NO PERMITE CREAR UN SP DENTRO DE UN BLOQUE CONDICIONAL DIRECTAMENTE
 END
 GO
 
-CREATE OR ALTER PROCEDURE tp.ImportarAdministracion_00
+CREATE OR ALTER PROCEDURE tp.sp_ImportarAdministracion_00
 AS
 BEGIN
 	INSERT INTO tp.Administracion (Nombre, Direccion, CorreoElectronico, Telefono)
@@ -341,13 +340,13 @@ GO
 -- 2) SP Importar datos consorcio
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
-    WHERE object_id = OBJECT_ID(N'tp.ImportarConsorcio_01') AND type = 'P')
+    WHERE object_id = OBJECT_ID(N'tp.sp_ImportarConsorcio_01') AND type = 'P')
 BEGIN
-    EXEC('CREATE PROCEDURE tp.ImportarConsorcio_01 AS BEGIN SET NOCOUNT ON; END') --SE NECESITA SQL DINAMICO PORQUE SQL NO PERMITE CREAR UN SP DENTRO DE UN BLOQUE CONDICIONAL DIRECTAMENTE
+    EXEC('CREATE PROCEDURE tp.sp_ImportarConsorcio_01 AS BEGIN SET NOCOUNT ON; END') --SE NECESITA SQL DINAMICO PORQUE SQL NO PERMITE CREAR UN SP DENTRO DE UN BLOQUE CONDICIONAL DIRECTAMENTE
 END
 GO
 
-CREATE OR ALTER PROCEDURE tp.ImportarConsorcio_01
+CREATE OR ALTER PROCEDURE tp.sp_ImportarConsorcio_01
 @RutaArchivo NVARCHAR(260)
 AS
 BEGIN
@@ -376,8 +375,6 @@ BEGIN
 
 	EXEC(@Sql);
 
-	SELECT * FROM #ConsorcioTemp
-
     -- Obtener ID_Administracion (ejemplo: el primero disponible)
     DECLARE @ID_Administracion INT;
     SELECT TOP 1 @ID_Administracion = ID_Administracion FROM tp.Administracion;
@@ -396,13 +393,13 @@ GO
 
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
-    WHERE object_id = OBJECT_ID(N'TP.ImportarUnidadFuncional_02 ') AND type = 'P')
+    WHERE object_id = OBJECT_ID(N'tp.sp_ImportarUnidadFuncional_02 ') AND type = 'P')
 BEGIN
-    EXEC('CREATE PROCEDURE TP.ImportarUnidadFuncional_02 AS BEGIN SET NOCOUNT ON; END')
+    EXEC('CREATE PROCEDURE tp.sp_ImportarUnidadFuncional_02 AS BEGIN SET NOCOUNT ON; END')
 END
 GO
 
-CREATE OR ALTER PROCEDURE TP.ImportarUnidadFuncional_02
+CREATE OR ALTER PROCEDURE tp.sp_ImportarUnidadFuncional_02
 @RutaArchivo NVARCHAR(260)
 AS
 BEGIN
@@ -429,7 +426,7 @@ BEGIN
 		FIELDTERMINATOR = ''\t'',  -- tabulador
 		ROWTERMINATOR = ''\n'',
 		FIRSTROW = 2,            -- salta encabezado
-		CODEPAGE = ''65001''  );'; -- UTF-8
+		CODEPAGE = ''65001''  );';
 		
 		
 		EXEC(@Sql);
@@ -451,7 +448,7 @@ BEGIN
 
 END
 
--- 4) SP Importar datos propietarios e inquilinos
+-- 4) SP Importar datos personas (propietarios e inquilinos)
 
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
@@ -461,7 +458,7 @@ BEGIN
 END
 GO
 
-create or ALTER PROCEDURE tp.sp_ImportarPersonas_03
+CREATE or ALTER PROCEDURE tp.sp_ImportarPersonas_03
 @RutaArchivo NVARCHAR(260)
 AS
 BEGIN
@@ -504,12 +501,20 @@ BEGIN
 
 	DROP TABLE #TempDatos;
 
-end
-go
+END
+GO
 
 -- 5) SP Importar CBU_CVU a unidad funcional
 
-create or ALTER PROCEDURE tp.sp_ImportarPropietariosInquilinosUnidadFuncional_04
+IF NOT EXISTS (
+    SELECT * FROM sys.objects 
+    WHERE object_id = OBJECT_ID(N'tp.sp_ImportarPropietariosInquilinosUnidadFuncional_04') AND type = 'P')
+BEGIN
+    EXEC('CREATE PROCEDURE tp.sp_ImportarPropietariosInquilinosUnidadFuncional_04 AS BEGIN SET NOCOUNT ON; END')
+END
+GO
+
+CREATE OR ALTER PROCEDURE tp.sp_ImportarPropietariosInquilinosUnidadFuncional_04
 @RutaArchivo NVARCHAR(260)
 AS
 BEGIN
@@ -534,9 +539,7 @@ BEGIN
 		FIRSTROW = 2
 		);';
 
-	EXEC(@Sql);  --Tabla temporal con toda la info del archivo 
-	--NombreConsorcio, NroUFuncional, Piso, Depto
-
+	EXEC(@Sql); 
 	
 	    UPDATE uf
         SET uf.CVU_CBU = t.CVU_CBU,uf.Tipo = p.Tipo
@@ -550,11 +553,20 @@ BEGIN
 	
 	DROP TABLE #TempDatos;
 END
-go
+GO
+
 
 -- 6) Sp importar pagos
 
-create or ALTER PROCEDURE tp.sp_ImportarPagos_05
+IF NOT EXISTS (
+    SELECT * FROM sys.objects 
+    WHERE object_id = OBJECT_ID(N'tp.sp_ImportarPagos_05') AND type = 'P')
+BEGIN
+    EXEC('CREATE PROCEDURE tp.sp_ImportarPagos_05 AS BEGIN SET NOCOUNT ON; END')
+END
+GO
+
+CREATE OR ALTER PROCEDURE tp.sp_ImportarPagos_05
 @RutaArchivo NVARCHAR(260)
 AS
 BEGIN
@@ -585,22 +597,30 @@ BEGIN
     CVU_CBU,
     TRY_CAST(REPLACE(Valor, '$', '') AS DECIMAL(13,4))
     FROM #PagosTemp t
-	WHERE t.IdPago is not null and cvu_cbu in (select CVU_CBU from tp.Persona);
+	WHERE t.IdPago IS NOT NULL AND cvu_cbu IN (SELECT CVU_CBU FROM tp.Persona);
 
     DROP TABLE #PagosTemp; 
 
 END 
 GO
 
--- 7) IMPORTAR DATOS DE SERVICIO FORMATO JSON
 
+-- 7) IMPORTAR DATOS DE SERVICIO
 
-create or alter PROCEDURE tp.sp_ImportarFormatoJson_06
+IF NOT EXISTS (
+    SELECT * FROM sys.objects 
+    WHERE object_id = OBJECT_ID(N'tp.sp_ImportarServicios_06') AND type = 'P')
+BEGIN
+    EXEC('CREATE PROCEDURE tp.sp_ImportarServicios_06 AS BEGIN SET NOCOUNT ON; END')
+END
+GO
+
+CREATE OR ALTER PROCEDURE tp.sp_ImportarServicios_06
 @RutaArchivo NVARCHAR(260)
 AS
-begin
+BEGIN
 	
-	create table #temp(
+	CREATE TABLE #temp(
 	NOMBRE_CONSORCIO VARCHAR(100),
 	FECHA DATE,
 	BANCARIOS DECIMAL(20,2),
@@ -611,8 +631,7 @@ begin
 	SERVICIOS_PUBLICOS_Agua DECIMAL(20,2),
 	SERVICIOS_PUBLICOS_Luz DECIMAL(20,2));
 
-	
-	    DECLARE @SQL NVARCHAR(MAX);
+	DECLARE @SQL NVARCHAR(MAX);
 
     SET @SQL = N'
     INSERT INTO #temp
@@ -657,17 +676,17 @@ begin
         SERVICIOS_PUBLICOS_Luz VARCHAR(30) ''$."SERVICIOS PUBLICOS-Luz"''
     ) AS JsonData;';
 
-    -- Ejecutar la consulta dinámica
+    -- Ejecutar la consulta dinámica por importar desde un archivo del tipo jason
     EXEC sp_executesql @SQL;
 
 	INSERT INTO TP.EstadoFinanciero (NombreConsorcio,EgresoGastoMensual,Fecha)
 	SELECT NOMBRE_CONSORCIO,BANCARIOS+LIMPIEZA+ADMINISTRACION+SEGUROS+GASTOS_GENERALES+SERVICIOS_PUBLICOS_Agua+SERVICIOS_PUBLICOS_Luz,FECHA
 	FROM #temp
-	where NOMBRE_CONSORCIO IS NOT NULL
+	WHERE NOMBRE_CONSORCIO IS NOT NULL
 
 	INSERT INTO TP.Expensa(NombreConsorcio,FechaEmision,PrimerFechaVencimiento,SegundaFechaVencimiento,ID_UF,TotalAPagar) 
 	SELECT T.NOMBRE_CONSORCIO,T.FECHA, DATEADD(DAY,10, T.FECHA), DATEADD(DAY,15, T.FECHA),U.ID_UF,
-	(t.ADMINISTRACION+t.BANCARIOS+t.GASTOS_GENERALES+t.LIMPIEZA+t.SEGUROS+t.SERVICIOS_PUBLICOS_Agua+t.SERVICIOS_PUBLICOS_Luz)
+	((t.ADMINISTRACION+t.BANCARIOS+t.GASTOS_GENERALES+t.LIMPIEZA+t.SEGUROS+t.SERVICIOS_PUBLICOS_Agua+t.SERVICIOS_PUBLICOS_Luz)*0.01*U.PorcentajeProrrateo)
 	FROM #temp T
 	INNER JOIN TP.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
 	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL 
@@ -709,9 +728,9 @@ begin
 
 	DECLARE @a INT = 1;
 
-	WHILE @a <= 405
+	WHILE @a <= 405 --------
 	BEGIN
-		INSERT INTO TP.Limpieza(ID_Expensa,Tipo) values (@a,'e')
+		INSERT INTO TP.Limpieza(ID_Expensa,Tipo) VALUES (@a,'e')
 		SET @a = @a + 1;
 	END
 	
@@ -722,21 +741,24 @@ begin
 	INNER JOIN TP.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
 	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL 
 
-	drop table #temp
-end
+	DROP TABLE #temp
+END
 GO
+
+
+
 
 -- 8) SP cargar tabla Gastos extraordinarios manualmente
 
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
-    WHERE object_id = OBJECT_ID(N'tp.sp_CargarGastoExtraordinarioManual_06') AND type = 'P')
+    WHERE object_id = OBJECT_ID(N'tp.sp_CargarGastoExtraordinarioManual_07') AND type = 'P')
 BEGIN
-    EXEC('CREATE PROCEDURE tp.sp_CargarGastoExtraordinarioManual_06 AS BEGIN SELECT 1 END') 
+    EXEC('CREATE PROCEDURE tp.sp_CargarGastoExtraordinarioManual_07 AS BEGIN SELECT 1 END') 
 END
 GO
 
-CREATE OR ALTER PROCEDURE tp.sp_CargarGastoExtraordinarioManual_06
+CREATE OR ALTER PROCEDURE tp.sp_CargarGastoExtraordinarioManual_07
 AS
 BEGIN
     SET NOCOUNT ON;
