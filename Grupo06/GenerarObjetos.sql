@@ -65,7 +65,7 @@ BEGIN
 END
 
 
-
+--CREACION DE BASE DE DATOS
 IF NOT EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name='Com5600G06') 
 BEGIN
 CREATE DATABASE Com5600G06
@@ -76,13 +76,14 @@ ALTER DATABASE Com5600G06 SET MULTI_USER WITH ROLLBACK IMMEDIATE; --- PARA USAR 
 
 USE Com5600G06
 
+--CREACION DE SCHEMA
 IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'tp')
 BEGIN
 	EXEC('CREATE SCHEMA tp')
 END 
 go
 
----		Creacion de tablas 
+---CREACION DE TABLAS
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
 TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'Administracion')
 BEGIN
@@ -96,7 +97,6 @@ CREATE TABLE tp.Administracion (
 );
 END
 go
-
 
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
@@ -166,10 +166,10 @@ CREATE TABLE tp.UnidadFuncional (
   Departamento VARCHAR(3) NOT NULL,
   PorcentajeProrrateo DECIMAL (5,4) NOT NULL,
   M2_Unidad DECIMAL(4,2) NULL,
-  BAULERA CHAR(2) NOT NULL,
-  COCHERA CHAR(2) NOT NULL,
-  M2_BAULERA INT NOT NULL CHECK (M2_BAULERA>=0),
-  M2_COCHERA INT NOT NULL CHECK (M2_COCHERA>=0),
+  Baulera CHAR(2) NOT NULL,
+  Cochera CHAR(2) NOT NULL,
+  M2_Baulera INT NOT NULL CHECK (M2_BAULERA>=0),
+  M2_Cochera INT NOT NULL CHECK (M2_COCHERA>=0),
   CVU_CBU varchar(22),
   Tipo BIT,
   CONSTRAINT PK_UNIDAD_FUNCIONAL PRIMARY KEY (ID_UF,NombreConsorcio),
@@ -236,6 +236,7 @@ CREATE TABLE tp.GastoExtraordinario (
 );
 END
 go
+
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
 TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'GastoGeneral')
@@ -359,8 +360,20 @@ GO
 CREATE OR ALTER PROCEDURE tp.sp_ImportarAdministracion_00
 AS
 BEGIN
-	INSERT INTO tp.Administracion (Nombre, Direccion, CorreoElectronico, Telefono)
-	VALUES   ('ADMINISTRACION DE CONSORCIOS ALTOS DE SAINT JUST', 'FLORENCIO VARELA 1900', 'SAINT.JUST@email.com', '1157736960')
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM tp.Administracion 
+        WHERE Nombre = 'ADMINISTRACION DE CONSORCIOS ALTOS DE SAINT JUST'
+    )
+
+    BEGIN
+
+        INSERT INTO tp.Administracion (Nombre, Direccion, CorreoElectronico, Telefono)
+        VALUES ('ADMINISTRACION DE CONSORCIOS ALTOS DE SAINT JUST', 'FLORENCIO VARELA 1900', 'SAINT.JUST@email.com', '1157736960')
+    END
+
 END;
 GO
 
@@ -459,17 +472,21 @@ BEGIN
 		EXEC(@Sql);
 
 		INSERT INTO tp.UnidadFuncional ( ID_UF, NombreConsorcio, Piso, Departamento, PorcentajeProrrateo, M2_Unidad, Baulera, Cochera, M2_Baulera, M2_Cochera)
-		SELECT NUM_UNIDAD_FUNCIONAL, NombreConsorcio,PISO,DEPARTAMENTO, 
-		 CAST(REPLACE(COEFICIENTE, ',', '.') AS DECIMAL(5,2)) ,
-		M2_UNIDAD_FUNCIONAL,BAULERA,COCHERA,
-		CAST(M2_BAULERA AS INT),
-		CAST(M2_COCHERA AS INT)
+		SELECT SUB.NUM_UNIDAD_FUNCIONAL, SUB.NombreConsorcio,SUB.PISO,SUB.DEPARTAMENTO, 
+		 CAST(REPLACE(SUB.COEFICIENTE, ',', '.') AS DECIMAL(5,2)) ,
+		SUB.M2_UNIDAD_FUNCIONAL,SUB.BAULERA,SUB.COCHERA,
+		CAST(SUB.M2_BAULERA AS INT),
+		CAST(SUB.M2_COCHERA AS INT)
 		FROM (
 				SELECT *,
 				ROW_NUMBER() OVER(PARTITION BY NUM_UNIDAD_FUNCIONAL,NombreConsorcio ORDER BY NUM_UNIDAD_FUNCIONAL) AS PRIMERO
 				FROM #Temp
 				WHERE NUM_UNIDAD_FUNCIONAL IS NOT NULL) SUB
-		WHERE SUB.PRIMERO = 1;
+		LEFT JOIN tp.UnidadFuncional U 
+            ON U.ID_UF = SUB.NUM_UNIDAD_FUNCIONAL
+            AND U.NombreConsorcio = SUB.NombreConsorcio
+		WHERE SUB.PRIMERO = 1
+        AND U.ID_UF IS NULL;
 
 		DROP TABLE #TEMP
 
@@ -618,13 +635,16 @@ BEGIN
 
 	EXEC(@Sql);
 
-	INSERT INTO tp.PAGO(ID_Pago,Fecha_Pago,CVU_CBU,Importe)
-    SELECT IdPago,
+	INSERT INTO tp.Pago(ID_Pago,Fecha_Pago,CVU_CBU,Importe)
+    SELECT T.IdPago,
     CONVERT(DATE, Fecha, 103),  -- formato dd/mm/yyyy
-    CVU_CBU,
+    T.CVU_CBU,
     TRY_CAST(REPLACE((REPLACE(Valor, '$', '')),'.','') AS DECIMAL(13,4))/10
     FROM #PagosTemp T
-	WHERE t.IdPago IS NOT NULL AND cvu_cbu IN (SELECT CVU_CBU FROM tp.Persona);
+	LEFT JOIN tp.Pago P ON P.ID_Pago = T.IdPago
+	WHERE t.IdPago IS NOT NULL 
+	AND T.cvu_cbu IN (SELECT CVU_CBU FROM tp.Persona)
+	AND p.ID_Pago IS NULL;
 
     DROP TABLE #PagosTemp; 
 
@@ -680,7 +700,7 @@ BEGIN
                 WHEN ''noviembre'' THEN 11
                 WHEN ''diciembre'' THEN 12
             END,
-            5
+            25
         ),
         TRY_CAST(REPLACE(REPLACE(BANCARIOS, '','', ''''), ''.'','''') AS DECIMAL(20,2)) / 100,
         TRY_CAST(REPLACE(REPLACE(LIMPIEZA, '','', ''''), ''.'','''') AS DECIMAL(20,2)) / 100,
@@ -824,6 +844,7 @@ BEGIN
 END
 GO
 
+
 -- 9) SP CARGAR AL IMPORTE TOTAL EL COSTO DE LAS BAULERAS Y COCHERAS
 
 IF NOT EXISTS (
@@ -840,16 +861,16 @@ AS
 BEGIN
 
 	UPDATE E
-	SET	E.TotalAPagar= E.TotalAPagar + @COSTE_M2_BAULERA*U.M2_BAULERA
+	SET	E.TotalAPagar= E.TotalAPagar + @COSTE_M2_BAULERA*U.M2_Baulera
 	FROM TP.Expensa E
-	INNER JOIN TP.UNIDADFUNCIONAL U ON E.ID_UF=U.ID_UF AND E.NombreConsorcio=U.NombreConsorcio
-	WHERE U.BAULERA='si' AND U.NombreConsorcio=@CONSORCIO AND MONTH (E.FechaEmision)=@numero_mes;
+	INNER JOIN TP.UnidadFuncional U ON E.ID_UF=U.ID_UF AND E.NombreConsorcio=U.NombreConsorcio
+	WHERE U.Baulera='si' AND U.NombreConsorcio=@CONSORCIO AND MONTH (E.FechaEmision)=@numero_mes;
 
 	UPDATE E
-	SET	E.TotalAPagar= E.TotalAPagar + @COSTE_M2_COCHERA*U.M2_COCHERA
+	SET	E.TotalAPagar= E.TotalAPagar + @COSTE_M2_COCHERA*U.M2_Cochera
 	FROM TP.Expensa E
-	INNER JOIN TP.UNIDADFUNCIONAL U ON E.ID_UF=U.ID_UF AND E.NombreConsorcio=U.NombreConsorcio
-	WHERE U.COCHERA='si' AND U.NombreConsorcio=@CONSORCIO AND MONTH (E.FechaEmision)=@numero_mes;
+	INNER JOIN TP.UnidadFuncional U ON E.ID_UF=U.ID_UF AND E.NombreConsorcio=U.NombreConsorcio
+	WHERE U.Cochera='si' AND U.NombreConsorcio=@CONSORCIO AND MONTH (E.FechaEmision)=@numero_mes;
 
 END
 GO
@@ -876,7 +897,6 @@ BEGIN
 	INNER JOIN TP.UnidadFuncional U ON U.ID_UF=E.ID_UF AND U.NombreConsorcio=E.NombreConsorcio
 	INNER JOIN TP.PAGO P ON P.CVU_CBU=U.CVU_CBU
 	WHERE DATEADD(MONTH, 1, E.FechaEmision)> P.Fecha_Pago AND P.Fecha_Pago>=E.FechaEmision
-
 
 END
 GO

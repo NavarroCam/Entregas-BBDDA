@@ -62,6 +62,7 @@ Y SE LA COLOCA EN EL DISCO C SE PUEDEN USAR TODAS LAS RUTAS A CONTINUACION.
 
 
 USE Com5600G06
+
 -- 1) Importar datos administración
 
 EXEC tp.sp_ImportarAdministracion_00
@@ -75,6 +76,7 @@ EXEC tp.sp_ImportarConsorcio_01 'C:\TP_Base_de_datos_aplicada\Grupo06\consorcios
 -- 3)Importar datos unidad funcional txt
 
 EXEC  tp.sp_ImportarUnidadFuncional_02 'C:\TP_Base_de_datos_aplicada\Grupo06\consorcios\UF por consorcio.TXT' 
+
 
 
 -- 4) Importar datos propietarios e inquilinos
@@ -136,7 +138,7 @@ EXEC tp.sp_ImportarServicios_06 'C:\TP_Base_de_datos_aplicada\Grupo06\consorcios
 
 EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 5,1200,1200,'Alberdi';
 EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 5,1200,1200,'Alzaga';
-EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 5,1200,1200,'Azcuenaga';  --##### inflacion
+EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 5,1200,1200,'Azcuenaga';
 EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 5,1200,1200,'Pereyra Iraola';
 EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 5,1200,1200,'Unzue';
 
