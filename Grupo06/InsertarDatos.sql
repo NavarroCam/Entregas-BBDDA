@@ -46,13 +46,11 @@ EXEC tp.sp_ImportarPagos_05 'C:\TP_Base_de_datos_aplicada\Grupo06\consorcios\pag
 
 --EXEC tp.sp_ImportarPagos_05 'C:\Users\Camila Navarro\Grupo06\consorcios\pagos_consorcios.csv'
 
---select * 
---from tp.Pago
---FOR XML AUTO, ELEMENTS;
 
 --- 7) IMPORTAR FORMATO JSON EL PRIMER MES ESPECIFICAR EL MES EN EL STORE PROCEDURE EJEMPLO 1 = ENERO EN ESTE CASO INSERTAMOS EL MES 4
 
 EXEC tp.sp_ImportarServicios_06 'C:\TP_Base_de_datos_aplicada\Grupo06\consorcios\Servicios.Servicios.json',4;
+
 --EXEC tp.sp_ImportarServicios_06 'C:\Users\Camila Navarro\Grupo06\consorcios\Servicios.Servicios.json'
 
 -- 8) Cargar Gastos Extraordinarios manualmente
@@ -87,15 +85,25 @@ EXEC tp.sp_ImportarServicios_06 'C:\TP_Base_de_datos_aplicada\Grupo06\consorcios
 
 -- 13) SP CARGAR AL IMPORTE TOTAL EL COSTO DE LAS BAULERAS Y COCHERAS 
 
-EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 5,1000,1000,'Alberdi';
-EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 5,1000,1000,'Alzaga';
-EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 5,1000,1000,'Azcuenaga';
-EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 5,1000,1000,'Pereyra Iraola';
-EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 5,1000,1000,'Unzue';
+EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 5,1200,1200,'Alberdi';
+EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 5,1200,1200,'Alzaga';
+EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 5,1200,1200,'Azcuenaga';  --##### inflacion
+EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 5,1200,1200,'Pereyra Iraola';
+EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 5,1200,1200,'Unzue';
 
 -- 14) SP PARA AGREGAR EL ID EXPENSA EN LA TABLA PAGOS hacerlo cada vez que se importa un nuevo mes de la importacion de servicios
 
 EXEC TP.SP_RellenarPagoConIdExpensa_09
+
+-- 15) SP CARGAR TABLA ESTADO DE CUENTA
+
+EXEC TP.SP_GenerarEstadoDeCuentA_10 5,1000,1000,0,'Alberdi'
+EXEC TP.SP_GenerarEstadoDeCuentA_10 5,1000,1000,0,'Alzaga'
+EXEC TP.SP_GenerarEstadoDeCuentA_10 5,1000,1000,0,'Azcuenaga'
+EXEC TP.SP_GenerarEstadoDeCuentA_10 5,1000,1000,0,'Pereyra Iraola'
+EXEC TP.SP_GenerarEstadoDeCuentA_10 5,1000,1000,0,'Unzue'
+
+
 
 SELECT * FROM TP.Administracion FOR XML AUTO, ELEMENTS;
 SELECT * FROM TP.Consorcio FOR XML AUTO, ELEMENTS;
@@ -113,5 +121,10 @@ SELECT * FROM TP.Seguro FOR XML AUTO, ELEMENTS;
 SELECT * FROM TP.ServicioPublico FOR XML AUTO, ELEMENTS;
 SELECT * FROM TP.UnidadFuncional FOR XML AUTO, ELEMENTS;
 
+
+
 SELECT * FROM TP.Expensa
-SELECT * FROM TP.Pago 
+
+SELECT count(*)
+FROM TP.Pago 
+where ID_Expensa is null

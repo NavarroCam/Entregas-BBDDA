@@ -626,7 +626,7 @@ BEGIN
                 WHEN ''noviembre'' THEN 11
                 WHEN ''diciembre'' THEN 12
             END,
-            25
+            5
         ),
         TRY_CAST(REPLACE(REPLACE(BANCARIOS, '','', ''''), ''.'','''') AS DECIMAL(20,2)) / 100,
         TRY_CAST(REPLACE(REPLACE(LIMPIEZA, '','', ''''), ''.'','''') AS DECIMAL(20,2)) / 100,
@@ -831,24 +831,22 @@ BEGIN
     WHERE MONTH(E.FechaEmision) = @numero_mes AND U.NombreConsorcio = @NOMBRE_CONSORCIO)
 	INSERT INTO TP.EstadodeCuenta(FECHA, ID_UF, NombreConsorcio, ImporteBaulera, ImporteCochera,deuda, SaldoAnterior, InteresPorMora1V, InteresPorMora2V, PagoRecibido)
 	SELECT FechaEmision,ID_UF,NombreConsorcio,ImporteBaulera,ImporteCochera,
-    CASE WHEN @primer_estado_cuenta = 1 THEN 50000 - PagoRecibido ELSE 1 END AS deuda,
-    CASE WHEN @primer_estado_cuenta = 1 THEN 50000 ELSE 1 END AS SaldoAnterior,
-    CASE WHEN @primer_estado_cuenta = 1 THEN 0 ELSE 1 END AS InteresPorMora1V,
-    CASE WHEN @primer_estado_cuenta = 1 THEN 0 ELSE 1 END AS InteresPorMora2V,
+    -PagoRecibido,
+    CASE WHEN @primer_estado_cuenta = 1 THEN 0 ELSE 0 END AS SaldoAnterior,
+    CASE WHEN @primer_estado_cuenta = 1 THEN 0 ELSE 0 END AS InteresPorMora1V,
+    CASE WHEN @primer_estado_cuenta = 1 THEN 0 ELSE 0 END AS InteresPorMora2V,
     PagoRecibido
-	FROM PagosCalculados;
+	FROM PagosCalculados PC;
 
 END 
 GO
 
+select * from tp.EstadodeCuenta
+SELECT * FROM TP.EXPENSA
 
-
-
-	SELECT C.Fecha,U.NombreConsorcio,U.ID_UF,C.SaldoAnterior,C.PagoRecibido,C.Deuda,C.InteresPorMora1V,C.InteresPorMora2V,C.ImporteCochera,E.TotalAPagar
+SELECT C.Fecha,U.NombreConsorcio,U.ID_UF,C.SaldoAnterior,C.PagoRecibido,C.Deuda,C.InteresPorMora1V,C.InteresPorMora2V,C.ImporteCochera,E.TotalAPagar
 	FROM TP.EstadodeCuenta C
 	INNER JOIN TP.UnidadFuncional U ON U.ID_UF=C.ID_UF AND U.NombreConsorcio=C.NombreConsorcio
 	INNER JOIN TP.Expensa E  ON E.ID_UF=U.ID_UF AND E.NombreConsorcio=U.NombreConsorcio
-
-
-	select * from tp.UnidadFuncional
+	--HAY DOBLE PORQUE ESTADO DE CUENTA EN CARDINALIDAD N
 
