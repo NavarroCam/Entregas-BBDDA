@@ -568,8 +568,8 @@ BEGIN
     SELECT IdPago,
     CONVERT(DATE, Fecha, 103),  -- formato dd/mm/yyyy
     CVU_CBU,
-    TRY_CAST(REPLACE(Valor, '$', '') AS DECIMAL(13,4))
-    FROM #PagosTemp t
+    TRY_CAST(REPLACE((REPLACE(Valor, '$', '')),'.','') AS DECIMAL(13,4))/10
+    FROM #PagosTemp T
 	WHERE t.IdPago IS NOT NULL AND cvu_cbu IN (SELECT CVU_CBU FROM tp.Persona);
 
     DROP TABLE #PagosTemp; 
@@ -802,32 +802,53 @@ BEGIN
 	FROM TP.Expensa E
 	INNER JOIN TP.UnidadFuncional U ON U.ID_UF=E.ID_UF AND U.NombreConsorcio=E.NombreConsorcio
 	INNER JOIN TP.PAGO P ON P.CVU_CBU=U.CVU_CBU
-	WHERE MONTH (P.Fecha_Pago)=MONTH (E.FechaEmision)
+	WHERE DATEADD(MONTH, 1, E.FechaEmision)> P.Fecha_Pago AND P.Fecha_Pago>=E.FechaEmision
+
 
 END
 GO
 
 -- 11) SP CARGAR TABLA ESTADO DE CUENTA 
 
-
 create or alter procedure TP.SP_GenerarEstadoDeCuentA_10
 @numero_mes INT,@COSTE_M2_BAULERA int, @COSTE_M2_COCHERA int,@primer_estado_cuenta bit,@NOMBRE_CONSORCIO VARCHAR (30)
 AS
 BEGIN
 	
-	INSERT INTO TP.EstadodeCuenta(FECHA,ID_UF,NombreConsorcio,ImporteBaulera,ImporteCochera,deuda,SaldoAnterior,InteresPorMora1V,InteresPorMora2V,PagoRecibido)
-	SELECT E.FechaEmision,U.ID_UF,U.NombreConsorcio,
-	CASE WHEN U.BAULERA= 'si' THEN u.M2_BAULERA*@COSTE_M2_BAULERA ELSE 0 END,
-	CASE WHEN U.COCHERA= 'si' THEN u.M2_COCHERA*@COSTE_M2_COCHERA ELSE 0 END,
-	CASE WHEN @primer_estado_cuenta=1 THEN 0 ELSE 100 END,			--########### razonar
-	CASE WHEN @primer_estado_cuenta=1 THEN 0 ELSE 100 END,			--########### razonar
-	CASE WHEN @primer_estado_cuenta=1 THEN 0 ELSE 100 END,			--########### razonar
-	CASE WHEN @primer_estado_cuenta=1 THEN 0 ELSE 100 END,			--########### razonar
-	CASE WHEN @primer_estado_cuenta=1 THEN 0 ELSE 100 END			--########### razonar
-	FROM TP.Expensa E
-	INNER JOIN TP.UnidadFuncional U ON U.ID_UF=E.ID_UF AND U.NombreConsorcio=E.NombreConsorcio
-	WHERE MONTH (E.FechaEmision)=@numero_mes AND U.NombreConsorcio=@NOMBRE_CONSORCIO
-
+	WITH PagosCalculados AS (
+    SELECT  E.FechaEmision,U.ID_UF, U.NombreConsorcio,
+        CASE WHEN U.BAULERA = 'si' THEN U.M2_BAULERA * @COSTE_M2_BAULERA ELSE 0 END AS ImporteBaulera,
+        CASE WHEN U.COCHERA = 'si' THEN U.M2_COCHERA * @COSTE_M2_COCHERA ELSE 0 END AS ImporteCochera,
+        ISNULL((
+            SELECT SUM(P.Importe)
+            FROM TP.Pago P
+            WHERE P.CVU_CBU = U.CVU_CBU
+            AND MONTH(P.Fecha_Pago) = @numero_mes
+            AND YEAR(P.Fecha_Pago) = YEAR(E.FechaEmision)
+            AND DAY(P.Fecha_Pago) < DAY(E.FechaEmision)), 0) AS PagoRecibido
+    FROM TP.Expensa E
+    INNER JOIN TP.UnidadFuncional U ON U.ID_UF = E.ID_UF AND U.NombreConsorcio = E.NombreConsorcio
+    WHERE MONTH(E.FechaEmision) = @numero_mes AND U.NombreConsorcio = @NOMBRE_CONSORCIO)
+	INSERT INTO TP.EstadodeCuenta(FECHA, ID_UF, NombreConsorcio, ImporteBaulera, ImporteCochera,deuda, SaldoAnterior, InteresPorMora1V, InteresPorMora2V, PagoRecibido)
+	SELECT FechaEmision,ID_UF,NombreConsorcio,ImporteBaulera,ImporteCochera,
+    CASE WHEN @primer_estado_cuenta = 1 THEN 50000 - PagoRecibido ELSE 1 END AS deuda,
+    CASE WHEN @primer_estado_cuenta = 1 THEN 50000 ELSE 1 END AS SaldoAnterior,
+    CASE WHEN @primer_estado_cuenta = 1 THEN 0 ELSE 1 END AS InteresPorMora1V,
+    CASE WHEN @primer_estado_cuenta = 1 THEN 0 ELSE 1 END AS InteresPorMora2V,
+    PagoRecibido
+	FROM PagosCalculados;
 
 END 
 GO
+
+
+
+
+	SELECT C.Fecha,U.NombreConsorcio,U.ID_UF,C.SaldoAnterior,C.PagoRecibido,C.Deuda,C.InteresPorMora1V,C.InteresPorMora2V,C.ImporteCochera,E.TotalAPagar
+	FROM TP.EstadodeCuenta C
+	INNER JOIN TP.UnidadFuncional U ON U.ID_UF=C.ID_UF AND U.NombreConsorcio=C.NombreConsorcio
+	INNER JOIN TP.Expensa E  ON E.ID_UF=U.ID_UF AND E.NombreConsorcio=U.NombreConsorcio
+
+
+	select * from tp.UnidadFuncional
+
