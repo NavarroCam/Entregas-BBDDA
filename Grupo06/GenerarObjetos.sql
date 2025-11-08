@@ -589,7 +589,7 @@ END
 GO
 
 CREATE OR ALTER PROCEDURE tp.sp_ImportarServicios_06
-@RutaArchivo NVARCHAR(260)
+@RutaArchivo NVARCHAR(260),@numero_mes int
 AS
 BEGIN
 	
@@ -654,50 +654,50 @@ BEGIN
 
 	INSERT INTO TP.EstadoFinanciero (NombreConsorcio,EgresoGastoMensual,Fecha)
 	SELECT NOMBRE_CONSORCIO,BANCARIOS+LIMPIEZA+ADMINISTRACION+SEGUROS+GASTOS_GENERALES+SERVICIOS_PUBLICOS_Agua+SERVICIOS_PUBLICOS_Luz,FECHA
-	FROM #temp
-	WHERE NOMBRE_CONSORCIO IS NOT NULL
+	FROM #temp T
+	WHERE NOMBRE_CONSORCIO IS NOT NULL and month (T.FECHA)=@numero_mes;
 
 	INSERT INTO TP.Expensa(NombreConsorcio,FechaEmision,PrimerFechaVencimiento,SegundaFechaVencimiento,ID_UF,TotalAPagar) 
 	SELECT T.NOMBRE_CONSORCIO,T.FECHA, DATEADD(DAY,10, T.FECHA), DATEADD(DAY,15, T.FECHA),U.ID_UF,
 	((t.ADMINISTRACION+t.BANCARIOS+t.GASTOS_GENERALES+t.LIMPIEZA+t.SEGUROS+t.SERVICIOS_PUBLICOS_Agua+t.SERVICIOS_PUBLICOS_Luz)*0.01*U.PorcentajeProrrateo)
 	FROM #temp T
 	INNER JOIN TP.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
-	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL 
+	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL and month (T.FECHA)=@numero_mes;
 
 	INSERT INTO TP.GastoGeneral(Importe,ID_Expensa) 
 	SELECT T.GASTOS_GENERALES*0.01*U.PorcentajeProrrateo,
 	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
 	FROM #temp T
 	INNER JOIN TP.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
-	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL 
+	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL and month (T.FECHA)=@numero_mes;
 
 	INSERT INTO TP.GastoAdministracion(Importe,ID_Expensa) 
 	SELECT T.ADMINISTRACION*0.01*U.PorcentajeProrrateo,
 	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
 	FROM #temp T
 	INNER JOIN TP.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
-	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL 
+	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL and month (T.FECHA)=@numero_mes;
 
 	INSERT INTO TP.Seguro (Importe,ID_Expensa)
 	SELECT T.SEGUROS*0.01*U.PorcentajeProrrateo,
 	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
 	FROM #temp T
 	INNER JOIN TP.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
-	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL 
+	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL and month (T.FECHA)=@numero_mes;
 
 	INSERT INTO TP.MantenimientoCtaBancaria (Importe,id_expensa)
 	SELECT T.BANCARIOS*0.01*U.PorcentajeProrrateo,
 	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
 	FROM #temp T
 	INNER JOIN TP.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
-	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL 
+	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL and month (T.FECHA)=@numero_mes;
 
 	INSERT INTO TP.ServicioPublico (ImporteAgua,ImporteLuz,ID_Expensa)
 	SELECT T.SERVICIOS_PUBLICOS_Agua*0.01*U.PorcentajeProrrateo,T.SERVICIOS_PUBLICOS_Luz*0.01*U.PorcentajeProrrateo,
 	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
 	FROM #temp T
 	INNER JOIN TP.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
-	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL 
+	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL and month (T.FECHA)=@numero_mes;
 
 	
 	INSERT INTO TP.Limpieza(Importe,ID_Expensa)
@@ -705,13 +705,11 @@ BEGIN
 	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
 	FROM #temp T
 	INNER JOIN TP.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
-	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL 
+	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL and month (T.FECHA)=@numero_mes;
 
 	DROP TABLE #temp
 END
 GO
-
-
 
 
 -- 8) SP cargar tabla Gastos extraordinarios manualmente
@@ -775,7 +773,7 @@ GO
 -- 9) SP CARGAR AL IMPORTE TOTAL EL COSTO DE LAS BAULERAS Y COCHERAS
 
 create or alter procedure TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08
-@COSTE_M2_BAULERA INT, @COSTE_M2_COCHERA INT, @CONSORCIO VARCHAR(30)
+@numero_mes INT,@COSTE_M2_BAULERA INT, @COSTE_M2_COCHERA INT, @CONSORCIO VARCHAR(30)
 AS
 BEGIN
 
@@ -783,32 +781,53 @@ BEGIN
 	SET	E.TotalAPagar= E.TotalAPagar + @COSTE_M2_BAULERA*U.M2_BAULERA
 	FROM TP.Expensa E
 	INNER JOIN TP.UNIDADFUNCIONAL U ON E.ID_UF=U.ID_UF AND E.NombreConsorcio=U.NombreConsorcio
-	WHERE U.BAULERA='si' AND U.NombreConsorcio=@CONSORCIO;
+	WHERE U.BAULERA='si' AND U.NombreConsorcio=@CONSORCIO AND MONTH (E.FechaEmision)=@numero_mes;
 
 	UPDATE E
 	SET	E.TotalAPagar= E.TotalAPagar + @COSTE_M2_COCHERA*U.M2_COCHERA
 	FROM TP.Expensa E
 	INNER JOIN TP.UNIDADFUNCIONAL U ON E.ID_UF=U.ID_UF AND E.NombreConsorcio=U.NombreConsorcio
-	WHERE U.COCHERA='si' AND U.NombreConsorcio=@CONSORCIO;
+	WHERE U.COCHERA='si' AND U.NombreConsorcio=@CONSORCIO AND MONTH (E.FechaEmision)=@numero_mes;
 
 END
+GO
+-- 10) SP PARA AGREGAR EL ID EXPENSA EN LA TABLA PAGOS
+
+create or alter procedure TP.SP_RellenarPagoConIdExpensa_09
+AS
+BEGIN
+
+	UPDATE  P
+	SET P.ID_EXPENSA=E.ID_Expensa
+	FROM TP.Expensa E
+	INNER JOIN TP.UnidadFuncional U ON U.ID_UF=E.ID_UF AND U.NombreConsorcio=E.NombreConsorcio
+	INNER JOIN TP.PAGO P ON P.CVU_CBU=U.CVU_CBU
+	WHERE MONTH (P.Fecha_Pago)=MONTH (E.FechaEmision)
+
+END
+GO
+
+-- 11) SP CARGAR TABLA ESTADO DE CUENTA 
 
 
--- 10) SP CARGAR TABLA ESTADO DE CUENTA 
-
-/*
-create or alter procedure TP.SP_GenerarEstadoDeCuentA_09
-@FECHA SMALLDATETIME
+create or alter procedure TP.SP_GenerarEstadoDeCuentA_10
+@numero_mes INT,@COSTE_M2_BAULERA int, @COSTE_M2_COCHERA int,@primer_estado_cuenta bit,@NOMBRE_CONSORCIO VARCHAR (30)
 AS
 BEGIN
 	
-	INSERT INTO TP.EstadodeCuenta(FECHA,ID_UF,NombreConsorcio
-	SELECT E.FechaEmision,ID_UF,NombreConsorcio,
+	INSERT INTO TP.EstadodeCuenta(FECHA,ID_UF,NombreConsorcio,ImporteBaulera,ImporteCochera,deuda,SaldoAnterior,InteresPorMora1V,InteresPorMora2V,PagoRecibido)
+	SELECT E.FechaEmision,U.ID_UF,U.NombreConsorcio,
+	CASE WHEN U.BAULERA= 'si' THEN u.M2_BAULERA*@COSTE_M2_BAULERA ELSE 0 END,
+	CASE WHEN U.COCHERA= 'si' THEN u.M2_COCHERA*@COSTE_M2_COCHERA ELSE 0 END,
+	CASE WHEN @primer_estado_cuenta=1 THEN 0 ELSE 100 END,			--########### razonar
+	CASE WHEN @primer_estado_cuenta=1 THEN 0 ELSE 100 END,			--########### razonar
+	CASE WHEN @primer_estado_cuenta=1 THEN 0 ELSE 100 END,			--########### razonar
+	CASE WHEN @primer_estado_cuenta=1 THEN 0 ELSE 100 END,			--########### razonar
+	CASE WHEN @primer_estado_cuenta=1 THEN 0 ELSE 100 END			--########### razonar
 	FROM TP.Expensa E
 	INNER JOIN TP.UnidadFuncional U ON U.ID_UF=E.ID_UF AND U.NombreConsorcio=E.NombreConsorcio
-	WHERE E.FechaEmision='2025-04-25 00:00:00'
+	WHERE MONTH (E.FechaEmision)=@numero_mes AND U.NombreConsorcio=@NOMBRE_CONSORCIO
 
-	SELECT * 
-	FROM TP.EstadodeCuenta
 
-END */
+END 
+GO
