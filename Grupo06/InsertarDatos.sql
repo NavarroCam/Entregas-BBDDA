@@ -60,7 +60,6 @@ ACLARACION IMPORTANTE SOBRE UBICACION DE LOS ARCHIVOS PROVISTOS:
 Y SE LA COLOCA EN EL DISCO C SE PUEDEN USAR TODAS LAS RUTAS A CONTINUACION.
 */
 
-
 USE Com5600G06
 
 -- 1) Importar datos administración
@@ -131,6 +130,7 @@ EXEC TP.SP_GenerarEstadoDeCuentA_10 4,1000,1000,1,'Unzue'
 
 -- 12) IMPORTAR FORMATO JSON EL SEGUNDO MES
 
+
 EXEC tp.sp_ImportarServicios_06 'C:\TP_Base_de_datos_aplicada\Grupo06\consorcios\Servicios.Servicios.json',5;
 
 
@@ -147,8 +147,11 @@ EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 5,1200,1200,'Unzue';
 
 EXEC TP.SP_RellenarPagoConIdExpensa_09
 
+-- 15) SP SUMAR DEUDA A EMPENSAS TOTAL A PAGAR
 
--- 15) SP CARGAR TABLA ESTADO DE CUENTA
+EXEC tp.sp_SumarDeudaExpensasTotalAPagar_11 1,135
+
+-- 16) SP CARGAR TABLA ESTADO DE CUENTA
 
 EXEC TP.SP_GenerarEstadoDeCuentA_10 5,1000,1000,0,'Alberdi'
 EXEC TP.SP_GenerarEstadoDeCuentA_10 5,1000,1000,0,'Alzaga'
@@ -156,6 +159,7 @@ EXEC TP.SP_GenerarEstadoDeCuentA_10 5,1000,1000,0,'Azcuenaga'
 EXEC TP.SP_GenerarEstadoDeCuentA_10 5,1000,1000,0,'Pereyra Iraola'
 EXEC TP.SP_GenerarEstadoDeCuentA_10 5,1000,1000,0,'Unzue'
 
+-- 17)
 
 
 SELECT * FROM TP.Administracion FOR XML AUTO, ELEMENTS;

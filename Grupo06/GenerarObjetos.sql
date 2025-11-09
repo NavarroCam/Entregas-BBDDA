@@ -179,26 +179,6 @@ CREATE TABLE tp.UnidadFuncional (
 END
 go
 
-IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
-TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'EstadodeCuenta')
-BEGIN
-
-CREATE TABLE tp.EstadodeCuenta (
-  ID_EstadodeCuenta INT IDENTITY(1,1) PRIMARY KEY,
-  Fecha SMALLDATETIME,
-  SaldoAnterior DECIMAL(20,2) NOT NULL CHECK(SaldoAnterior >= 0),
-  PagoRecibido DECIMAL(20,2) NOT NULL CHECK(PagoRecibido >= 0),
-  InteresPorMora1V DECIMAL (20,2) NOT NULL DEFAULT 0,
-  InteresPorMora2V DECIMAL (20,2) NOT NULL DEFAULT 0, 
-  Deuda DECIMAL(20,2) NOT NULL DEFAULT 0,
-  ImporteCochera DECIMAL(20,2) NOT NULL CHECK (ImporteCochera >=0) DEFAULT 0,
-  ImporteBaulera DECIMAL(20,2) NOT NULL CHECK (ImporteBaulera >=0) DEFAULT 0,
-  ID_UF INT,
-  NombreConsorcio VARCHAR(30),
-  CONSTRAINT FK_ESTADO_DE_CUENTA FOREIGN KEY (ID_UF,NombreConsorcio) REFERENCES TP.UnidadFuncional (ID_UF,NombreConsorcio)
-  );
-END
-go
 
 
 
@@ -219,7 +199,24 @@ CREATE TABLE tp.Expensa (
 END
 go
 
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
+TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'EstadodeCuenta')
+BEGIN
 
+CREATE TABLE tp.EstadodeCuenta (
+  ID_ESTADO_DE_CUENTA INT,
+  Fecha SMALLDATETIME,
+  SaldoAnterior DECIMAL(20,2) null,
+  PagoRecibido DECIMAL(20,2) NOT NULL CHECK(PagoRecibido >= 0),
+  InteresPorMora1V DECIMAL (20,2) NOT NULL DEFAULT 0,
+  InteresPorMora2V DECIMAL (20,2) NOT NULL DEFAULT 0, 
+  Deuda DECIMAL(20,2) NOT NULL DEFAULT 0,
+  ImporteCochera DECIMAL(20,2) NOT NULL CHECK (ImporteCochera >=0) DEFAULT 0,
+  ImporteBaulera DECIMAL(20,2) NOT NULL CHECK (ImporteBaulera >=0) DEFAULT 0,
+  CONSTRAINT FK_ESTADO_DE_CUENTA FOREIGN KEY (ID_ESTADO_DE_CUENTA) REFERENCES TP.EXPENSA (ID_Expensa)
+  );
+END
+go
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
 TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'GastoExtraordinario')
@@ -700,7 +697,7 @@ BEGIN
                 WHEN ''noviembre'' THEN 11
                 WHEN ''diciembre'' THEN 12
             END,
-            25
+            5
         ),
         TRY_CAST(REPLACE(REPLACE(BANCARIOS, '','', ''''), ''.'','''') AS DECIMAL(20,2)) / 100,
         TRY_CAST(REPLACE(REPLACE(LIMPIEZA, '','', ''''), ''.'','''') AS DECIMAL(20,2)) / 100,
@@ -912,35 +909,117 @@ BEGIN
 END
 GO
 
+
 CREATE or ALTER PROCEDURE tp.sp_GenerarEstadoDeCuentA_10
 @numero_mes INT,@COSTE_M2_BAULERA int, @COSTE_M2_COCHERA int,@primer_estado_cuenta bit,@NOMBRE_CONSORCIO VARCHAR (30)
 AS
 BEGIN
 	
-	WITH PagosCalculados AS (
-    SELECT  E.FechaEmision,U.ID_UF, U.NombreConsorcio,
-        CASE WHEN U.BAULERA = 'si' THEN U.M2_BAULERA * @COSTE_M2_BAULERA ELSE 0 END AS ImporteBaulera,
-        CASE WHEN U.COCHERA = 'si' THEN U.M2_COCHERA * @COSTE_M2_COCHERA ELSE 0 END AS ImporteCochera,
-        ISNULL((
-            SELECT SUM(P.Importe)
-            FROM TP.Pago P
-            WHERE P.CVU_CBU = U.CVU_CBU
-            AND MONTH(P.Fecha_Pago) = @numero_mes
-            AND YEAR(P.Fecha_Pago) = YEAR(E.FechaEmision)
-            AND DAY(P.Fecha_Pago) < DAY(E.FechaEmision)), 0) AS PagoRecibido
-    FROM TP.Expensa E
-    INNER JOIN TP.UnidadFuncional U ON U.ID_UF = E.ID_UF AND U.NombreConsorcio = E.NombreConsorcio
-    WHERE MONTH(E.FechaEmision) = @numero_mes AND U.NombreConsorcio = @NOMBRE_CONSORCIO)
-	INSERT INTO TP.EstadodeCuenta(FECHA, ID_UF, NombreConsorcio, ImporteBaulera, ImporteCochera,deuda, SaldoAnterior, InteresPorMora1V, InteresPorMora2V, PagoRecibido)
-	SELECT FechaEmision,ID_UF,NombreConsorcio,ImporteBaulera,ImporteCochera,
-    -PagoRecibido,
-    CASE WHEN @primer_estado_cuenta = 1 THEN 0 ELSE 0 END AS SaldoAnterior,
-    CASE WHEN @primer_estado_cuenta = 1 THEN 0 ELSE 0 END AS InteresPorMora1V,
-    CASE WHEN @primer_estado_cuenta = 1 THEN 0 ELSE 0 END AS InteresPorMora2V,
-    PagoRecibido
-	FROM PagosCalculados PC;
+	if @primer_estado_cuenta=1
+	begin
+		WITH PagosCalculados AS (
+		SELECT  E.FechaEmision,U.ID_UF, U.NombreConsorcio,
+		ISNULL((
+		SELECT SUM(P.Importe)						
+		FROM TP.Pago P
+		WHERE P.CVU_CBU = U.CVU_CBU AND MONTH(P.Fecha_Pago) =@numero_mes AND YEAR(P.Fecha_Pago) = YEAR(E.FechaEmision) AND DAY(P.Fecha_Pago) < DAY(E.FechaEmision)), 0) AS PagoRecibido
+	    FROM TP.Expensa E
+	    INNER JOIN TP.UnidadFuncional U ON U.ID_UF = E.ID_UF AND U.NombreConsorcio = E.NombreConsorcio
+	    WHERE MONTH(E.FechaEmision) =@numero_mes AND U.NombreConsorcio = @NOMBRE_CONSORCIO)
+		INSERT INTO TP.EstadodeCuenta(ID_ESTADO_DE_CUENTA,Fecha,ImporteBaulera,ImporteCochera,SaldoAnterior,PagoRecibido,InteresPorMora1V,InteresPorMora2V,Deuda)
+		SELECT ex.ID_Expensa,EX.FechaEmision,
+		@COSTE_M2_BAULERA*U.M2_BAULERA,
+		@COSTE_M2_COCHERA*U.M2_COCHERA,
+		0,--SALDO ANTERIOR
+		PagoRecibido,--PAGO RECIBIDO
+		0,--InteresPorMora1V
+		0,--InteresPorMora2V
+		-PagoRecibido --Deuda
+		FROM TP.EXPENSA EX
+		inner join PagosCalculados pa on pa.ID_UF=ex.ID_UF and pa.NombreConsorcio=ex.NombreConsorcio
+		inner join UnidadFuncional u on u.ID_UF=ex.ID_UF and u.NombreConsorcio=ex.NombreConsorcio
+		WHERE ex.NombreConsorcio=@NOMBRE_CONSORCIO AND MONTH (EX.FechaEmision)=@numero_mes
+	end
+	else 
+	begin
+		
+		WITH PagosCalculados AS (
+		SELECT  E.FechaEmision,U.ID_UF, U.NombreConsorcio,
+		ISNULL((
+		SELECT SUM(P.Importe)						
+		FROM TP.Pago P
+		WHERE P.CVU_CBU = U.CVU_CBU AND MONTH(P.Fecha_Pago) =@numero_mes AND YEAR(P.Fecha_Pago) = YEAR(E.FechaEmision) AND DAY(P.Fecha_Pago) < DAY(E.FechaEmision)), 0) AS PagoRecibido,
+		ISNULL((
+        SELECT TOP 1 e.TotalAPagar
+        FROM TP.Expensa e
+        WHERE e.ID_UF = U.ID_UF AND e.NombreConsorcio = U.NombreConsorcio AND MONTH(e.FechaEmision) = @numero_mes - 1 AND YEAR(e.FechaEmision) = YEAR(E.FechaEmision)
+        ORDER BY e.FechaEmision DESC ), 0) AS saldo_anterior
+		FROM TP.Expensa E
+		INNER JOIN TP.UnidadFuncional U ON U.ID_UF = E.ID_UF AND U.NombreConsorcio = E.NombreConsorcio
+	    WHERE MONTH(E.FechaEmision) = @numero_mes AND U.NombreConsorcio = @NOMBRE_CONSORCIO)
+		INSERT INTO TP.EstadodeCuenta(ID_ESTADO_DE_CUENTA,Fecha,ImporteBaulera,ImporteCochera,SaldoAnterior,PagoRecibido,InteresPorMora1V,InteresPorMora2V,Deuda)
+		SELECT ex.ID_Expensa,EX.FechaEmision,
+		@COSTE_M2_BAULERA*U.M2_BAULERA,
+		@COSTE_M2_COCHERA*U.M2_COCHERA,
+		saldo_anterior,
+		PagoRecibido,--PAGO RECIBIDO
+		0,--InteresPorMora1V
+		0,--InteresPorMora2V
+		saldo_anterior-PagoRecibido --Deuda
+		FROM TP.EXPENSA EX
+		inner join PagosCalculados pa on pa.ID_UF=ex.ID_UF and pa.NombreConsorcio=ex.NombreConsorcio
+		inner join UnidadFuncional u on u.ID_UF=ex.ID_UF and u.NombreConsorcio=ex.NombreConsorcio
+		WHERE ex.NombreConsorcio=@NOMBRE_CONSORCIO AND MONTH (EX.FechaEmision)=@numero_mes
+
+	end
 
 END 
 GO
 
 
+
+CREATE or ALTER PROCEDURE tp.sp_SumarDeudaExpensasTotalAPagar_11
+@NUMERO2 INT,@NUMERO INT
+as
+BEGIN
+	
+	CREATE TABLE #TEMP_ESTADO_CUENTA(
+	ID_ESTADO_DE_CUENTA INT,
+	Fecha SMALLDATETIME,
+	SaldoAnterior DECIMAL(20,2) null,
+	PagoRecibido DECIMAL(20,2) NOT NULL CHECK(PagoRecibido >= 0),
+	InteresPorMora1V DECIMAL (20,2) NOT NULL DEFAULT 0,
+	InteresPorMora2V DECIMAL (20,2) NOT NULL DEFAULT 0, 
+	Deuda DECIMAL(20,2) NOT NULL DEFAULT 0);
+
+	INSERT INTO #TEMP_ESTADO_CUENTA(ID_ESTADO_DE_CUENTA,Fecha,SaldoAnterior,PagoRecibido,InteresPorMora1V,InteresPorMora2V,Deuda)
+	SELECT ID_ESTADO_DE_CUENTA,Fecha,SaldoAnterior,PagoRecibido,InteresPorMora1V,InteresPorMora2V,Deuda
+	FROM TP.EstadodeCuenta
+	WHERE ID_ESTADO_DE_CUENTA<=@NUMERO AND @NUMERO2<=ID_ESTADO_DE_CUENTA
+	
+	SELECT * 
+	FROM #TEMP_ESTADO_CUENTA
+	ORDER BY ID_ESTADO_DE_CUENTA
+
+
+	UPDATE E2
+	SET E2.TotalAPagar = E2.TotalAPagar +E1.Deuda
+	FROM TP.Expensa E2
+	INNER JOIN #TEMP_ESTADO_CUENTA E1 ON E1.ID_ESTADO_DE_CUENTA = E2.ID_Expensa
+   
+
+END
+
+
+
+SELECT * FROM TP.Pago
+
+SELECT *
+FROM TP.Expensa e
+
+
+SELECT * 
+FROM TP.EstadodeCuenta	
+order by id_estado_de_cuenta
+
+ASDADSASDADSADSASDADSASDADS
