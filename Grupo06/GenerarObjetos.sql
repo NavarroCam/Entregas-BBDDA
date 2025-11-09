@@ -204,7 +204,7 @@ TABLE_SCHEMA = 'tp' AND TABLE_NAME = 'EstadodeCuenta')
 BEGIN
 
 CREATE TABLE tp.EstadodeCuenta (
-  ID_ESTADO_DE_CUENTA INT,
+  ID_EstadoDeCuenta INT PRIMARY KEY,
   Fecha SMALLDATETIME,
   SaldoAnterior DECIMAL(20,2) null,
   PagoRecibido DECIMAL(20,2) NOT NULL CHECK(PagoRecibido >= 0),
@@ -213,7 +213,7 @@ CREATE TABLE tp.EstadodeCuenta (
   Deuda DECIMAL(20,2) NOT NULL DEFAULT 0,
   ImporteCochera DECIMAL(20,2) NOT NULL CHECK (ImporteCochera >=0) DEFAULT 0,
   ImporteBaulera DECIMAL(20,2) NOT NULL CHECK (ImporteBaulera >=0) DEFAULT 0,
-  CONSTRAINT FK_ESTADO_DE_CUENTA FOREIGN KEY (ID_ESTADO_DE_CUENTA) REFERENCES TP.EXPENSA (ID_Expensa)
+  CONSTRAINT FK_EstadoDeCuenta FOREIGN KEY (ID_EstadoDeCuenta) REFERENCES tp.Expensa (ID_Expensa)
   );
 END
 go
@@ -1021,5 +1021,3 @@ FROM TP.Expensa e
 SELECT * 
 FROM TP.EstadodeCuenta	
 order by id_estado_de_cuenta
-
-ASDADSASDADSADSASDADSASDADS
