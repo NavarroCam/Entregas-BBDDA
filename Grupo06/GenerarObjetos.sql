@@ -124,9 +124,7 @@ CREATE TABLE tp.EstadoFinanciero (
  ID_EF INT IDENTITY (1,1) PRIMARY KEY,
  Fecha SMALLDATETIME NULL, --
  SaldoAnterior DECIMAL(20,2) DEFAULT (0),
- IngresoPagoEnTermino DECIMAL(20,2) DEFAULT (0),
- IngresoPagoAdeudado DECIMAL(20,2)  DEFAULT (0),
- IngresoPagoAdelantado DECIMAL(20,2) DEFAULT (0),
+ IngresoPagoMensual  DECIMAL(20,2),
  EgresoGastoMensual DECIMAL(20,2)   DEFAULT (0),
  SaldoAlCierre DECIMAL(20,2) DEFAULT(0), --VER COMO SE CALCULA (SP, TRIGGER, ETC.)
  NombreConsorcio VARCHAR(30) NOT NULL,
@@ -926,7 +924,7 @@ BEGIN
 	    FROM TP.Expensa E
 	    INNER JOIN TP.UnidadFuncional U ON U.ID_UF = E.ID_UF AND U.NombreConsorcio = E.NombreConsorcio
 	    WHERE MONTH(E.FechaEmision) =@numero_mes AND U.NombreConsorcio = @NOMBRE_CONSORCIO)
-		INSERT INTO TP.EstadodeCuenta(ID_ESTADO_DE_CUENTA,Fecha,ImporteBaulera,ImporteCochera,SaldoAnterior,PagoRecibido,InteresPorMora1V,InteresPorMora2V,Deuda)
+		INSERT INTO TP.EstadodeCuenta(ID_EstadoDeCuenta,Fecha,ImporteBaulera,ImporteCochera,SaldoAnterior,PagoRecibido,InteresPorMora1V,InteresPorMora2V,Deuda)
 		SELECT ex.ID_Expensa,EX.FechaEmision,
 		@COSTE_M2_BAULERA*U.M2_BAULERA,
 		@COSTE_M2_COCHERA*U.M2_COCHERA,
@@ -957,14 +955,14 @@ BEGIN
 		FROM TP.Expensa E
 		INNER JOIN TP.UnidadFuncional U ON U.ID_UF = E.ID_UF AND U.NombreConsorcio = E.NombreConsorcio
 	    WHERE MONTH(E.FechaEmision) = @numero_mes AND U.NombreConsorcio = @NOMBRE_CONSORCIO)
-		INSERT INTO TP.EstadodeCuenta(ID_ESTADO_DE_CUENTA,Fecha,ImporteBaulera,ImporteCochera,SaldoAnterior,PagoRecibido,InteresPorMora1V,InteresPorMora2V,Deuda)
+		INSERT INTO TP.EstadodeCuenta(ID_EstadoDeCuenta,Fecha,ImporteBaulera,ImporteCochera,SaldoAnterior,PagoRecibido,InteresPorMora1V,InteresPorMora2V,Deuda)
 		SELECT ex.ID_Expensa,EX.FechaEmision,
 		@COSTE_M2_BAULERA*U.M2_BAULERA,
 		@COSTE_M2_COCHERA*U.M2_COCHERA,
 		saldo_anterior,
 		PagoRecibido,--PAGO RECIBIDO
-		0,--InteresPorMora1V
-		0,--InteresPorMora2V
+		(saldo_anterior-PagoRecibido)*1.02,--InteresPorMora1V
+		(saldo_anterior-PagoRecibido)*1.05,--InteresPorMora2V
 		saldo_anterior-PagoRecibido --Deuda
 		FROM TP.EXPENSA EX
 		inner join PagosCalculados pa on pa.ID_UF=ex.ID_UF and pa.NombreConsorcio=ex.NombreConsorcio
@@ -993,9 +991,9 @@ BEGIN
 	Deuda DECIMAL(20,2) NOT NULL DEFAULT 0);
 
 	INSERT INTO #TEMP_ESTADO_CUENTA(ID_ESTADO_DE_CUENTA,Fecha,SaldoAnterior,PagoRecibido,InteresPorMora1V,InteresPorMora2V,Deuda)
-	SELECT ID_ESTADO_DE_CUENTA,Fecha,SaldoAnterior,PagoRecibido,InteresPorMora1V,InteresPorMora2V,Deuda
+	SELECT ID_EstadoDeCuenta,Fecha,SaldoAnterior,PagoRecibido,InteresPorMora1V,InteresPorMora2V,Deuda
 	FROM TP.EstadodeCuenta
-	WHERE ID_ESTADO_DE_CUENTA<=@NUMERO AND @NUMERO2<=ID_ESTADO_DE_CUENTA
+	WHERE ID_EstadoDeCuenta<=@NUMERO AND @NUMERO2<=ID_EstadoDeCuenta
 	
 	SELECT * 
 	FROM #TEMP_ESTADO_CUENTA
@@ -1009,15 +1007,33 @@ BEGIN
    
 
 END
+go
 
+CREATE or ALTER PROCEDURE tp.SP_RellenarEstadoFinancieroIngresos_12
+@numero_mes int
+as
+begin
 
+	UPDATE EF
+	SET EF.IngresoPagoMensual = T.TotalPagos, 
+	 EF.SaldoAlCierre = T.TotalPagos - EF.EgresoGastoMensual
+	FROM TP.EstadoFinanciero EF
+	INNER JOIN (
+    SELECT e.NombreConsorcio, SUM(p.Importe) AS TotalPagos
+    FROM TP.Pago p
+    INNER JOIN TP.Expensa e ON e.ID_Expensa = p.ID_Expensa
+    INNER JOIN TP.UnidadFuncional u ON u.ID_UF = e.ID_UF AND u.NombreConsorcio = e.NombreConsorcio
+    INNER JOIN TP.Consorcio c ON c.Nombre = u.NombreConsorcio
+    WHERE MONTH(p.Fecha_Pago) = @numero_mes
+    GROUP BY e.NombreConsorcio
+) AS T
+ON T.NombreConsorcio = EF.NombreConsorcio and month (ef.fecha)=@numero_mes;
 
-SELECT * FROM TP.Pago
-
-SELECT *
-FROM TP.Expensa e
+end
 
 
 SELECT * 
 FROM TP.EstadodeCuenta	
-order by id_estado_de_cuenta
+order by ID_EstadoDeCuenta
+
+asdadsads
