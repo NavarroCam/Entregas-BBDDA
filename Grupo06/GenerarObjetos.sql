@@ -975,6 +975,15 @@ END
 GO
 
 
+--12) SUMAR DEUDA A "Total a Pagar" de Expensa
+
+IF NOT EXISTS (
+    SELECT * FROM sys.objects 
+    WHERE object_id = OBJECT_ID(N'tp.sp_SumarDeudaExpensasTotalAPagar_11') AND type = 'P')
+BEGIN
+    EXEC('CREATE PROCEDURE tp.sp_SumarDeudaExpensasTotalAPagar_11 AS BEGIN SELECT 1 END') 
+END
+GO
 
 CREATE or ALTER PROCEDURE tp.sp_SumarDeudaExpensasTotalAPagar_11
 @NUMERO2 INT,@NUMERO INT
@@ -995,9 +1004,9 @@ BEGIN
 	FROM TP.EstadodeCuenta
 	WHERE ID_EstadoDeCuenta<=@NUMERO AND @NUMERO2<=ID_EstadoDeCuenta
 	
-	SELECT * 
+	/*SELECT * 
 	FROM #TEMP_ESTADO_CUENTA
-	ORDER BY ID_ESTADO_DE_CUENTA
+	ORDER BY ID_ESTADO_DE_CUENTA*/
 
 
 	UPDATE E2
@@ -1008,6 +1017,18 @@ BEGIN
 
 END
 go
+
+
+--13) Cargar Ingresos de Estado Financiero
+
+IF NOT EXISTS (
+    SELECT * FROM sys.objects 
+    WHERE object_id = OBJECT_ID(N'tp.SP_RellenarEstadoFinancieroIngresos_12') AND type = 'P')
+BEGIN
+    EXEC('CREATE PROCEDURE tp.SP_RellenarEstadoFinancieroIngresos_12 AS BEGIN SELECT 1 END') 
+END
+GO
+
 
 CREATE or ALTER PROCEDURE tp.SP_RellenarEstadoFinancieroIngresos_12
 @numero_mes int
@@ -1032,8 +1053,73 @@ ON T.NombreConsorcio = EF.NombreConsorcio and month (ef.fecha)=@numero_mes;
 end
 
 
-SELECT * 
-FROM TP.EstadodeCuenta	
-order by ID_EstadoDeCuenta
+--14) Importa nombres de Limpieza y Seguro
 
-asdadsads
+IF NOT EXISTS (
+    SELECT * FROM sys.objects 
+    WHERE object_id = OBJECT_ID(N'tp.sp_ActualizarNombresProveedoresLimpiezaSeguro_13') AND type = 'P')
+BEGIN
+    EXEC('CREATE PROCEDURE tp.sp_ActualizarNombresProveedoresLimpiezaSeguro_13 AS BEGIN SELECT 1 END') 
+END
+GO
+
+CREATE OR ALTER PROCEDURE tp.sp_ActualizarNombresProveedoresLimpiezaSeguro_13
+    @RutaArchivo NVARCHAR(260)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    CREATE TABLE #ProveedoresTemp (
+        TipoServicio NVARCHAR(100),
+        DetalleProveedor NVARCHAR(255),
+        NombreProveedor NVARCHAR(255), 
+        NombreConsorcio VARCHAR(30)
+    );
+
+    DECLARE @Sql NVARCHAR(MAX);
+
+    SET @Sql = '
+        BULK INSERT #ProveedoresTemp
+        FROM ''' + @RutaArchivo + '''
+        WITH (
+            FIELDTERMINATOR = '';'', 
+            ROWTERMINATOR = ''\n'',
+            FIRSTROW = 3 
+        );';
+    
+    EXEC(@Sql);
+
+    CREATE TABLE #LimpiezaMap (
+        NombreConsorcio VARCHAR(30) PRIMARY KEY,
+        NombreEmpresaLimpieza VARCHAR(255)
+    );
+
+    INSERT INTO #LimpiezaMap (NombreConsorcio, NombreEmpresaLimpieza)
+    SELECT DISTINCT
+        T.NombreConsorcio,
+        T.NombreProveedor
+    FROM #ProveedoresTemp T
+    WHERE T.TipoServicio LIKE '%LIMPIEZA%' 
+    AND T.NombreConsorcio IS NOT NULL
+    AND T.NombreProveedor IS NOT NULL;
+
+    UPDATE L
+    SET L.NombreEmpresaLimpieza = LM.NombreEmpresaLimpieza
+    FROM tp.Limpieza L
+    INNER JOIN tp.Expensa E ON E.ID_Expensa = L.ID_Expensa
+    INNER JOIN #LimpiezaMap LM ON LM.NombreConsorcio = E.NombreConsorcio;
+    
+    UPDATE S
+    SET S.NombreEmpresaSeguro = 'FEDERACIÓN PATRONAL SEGUROS'
+    FROM tp.Seguro S
+    INNER JOIN tp.Expensa E ON E.ID_Expensa = S.ID_Expensa
+    INNER JOIN (SELECT DISTINCT NombreConsorcio FROM #ProveedoresTemp WHERE NombreConsorcio IS NOT NULL) T ON T.NombreConsorcio = E.NombreConsorcio;
+
+    
+    DROP TABLE #ProveedoresTemp;
+    DROP TABLE #LimpiezaMap;
+
+END
+GO
+
+
