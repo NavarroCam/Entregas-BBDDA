@@ -18,7 +18,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Consulta</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="CAM-PC\SQLEXPRESS:DESKTOP-JKOJ5PF\ecgam">
+        <ConnectionNode Name="CAM-PC\SQLEXPRESS:CAM-PC\Camila Navarro">
           <Created>2025-11-05T23:58:31.4066879-03:00</Created>
           <Type>SQL</Type>
           <Server>CAM-PC\SQLEXPRESS</Server>
@@ -63,7 +63,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Consulta</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="DESKTOP-JKOJ5PF\SQLEXPRESS02:DESKTOP-JKOJ5PF\ecgam">
+        <ConnectionNode Name="DESKTOP-JKOJ5PF\SQLEXPRESS02:CAM-PC\Camila Navarro">
           <Created>2025-11-06T09:31:05.6856694-03:00</Created>
           <Type>SQL</Type>
           <Server>DESKTOP-JKOJ5PF\SQLEXPRESS02</Server>
@@ -112,29 +112,35 @@
     </LogicalFolder>
     <LogicalFolder Name="Consultas" Type="0" Sorted="true">
       <Items>
-        <FileNode Name="GenerarObjetos.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
+        <FileNode Name="00_GenerarObjetos.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:CAM-PC\SQLEXPRESS:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>CAM-PC\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>GenerarObjetos.sql</FullPath>
+          <FullPath>00_GenerarObjetos.sql</FullPath>
         </FileNode>
-        <FileNode Name="InsertarDatos.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
+        <FileNode Name="01_InsertarDatos.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:CAM-PC\SQLEXPRESS:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>CAM-PC\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>InsertarDatos.sql</FullPath>
+          <FullPath>01_InsertarDatos.sql</FullPath>
         </FileNode>
-        <FileNode Name="Pruebas.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
+        <FileNode Name="02_GenerarSPReportes.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:CAM-PC\SQLEXPRESS:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>CAM-PC\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>Pruebas.sql</FullPath>
+          <FullPath>02_GenerarSPReportes.sql</FullPath>
         </FileNode>
-        <FileNode Name="Querys.sql">
+        <FileNode Name="03_GenerarIndices.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:CAM-PC\SQLEXPRESS:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>CAM-PC\SQLEXPRESS</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>03_GenerarIndices.sql</FullPath>
+        </FileNode>
+        <FileNode Name="04_EjecutarReportes.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>Querys.sql</FullPath>
+          <FullPath>04_EjecutarReportes.sql</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>
