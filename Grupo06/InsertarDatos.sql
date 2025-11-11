@@ -124,8 +124,9 @@ EXEC TP.SP_RellenarPagoConIdExpensa_09
 EXEC tp.SP_RellenarEstadoFinancieroIngresos_12 4
 
 
--- 11) SP CARGAR TABLA ESTADO DE CUENTA INDICAR NUMERO DE MES COSTE DE M2 POR BAULERA, COCHERA Y DECIR SI ES LA PRIMERA VEZ QUE SE CARGA LA TABLA CON 1 = VERDADERO,
+-- 12) SP CARGAR TABLA ESTADO DE CUENTA INDICAR NUMERO DE MES COSTE DE M2 POR BAULERA, COCHERA Y DECIR SI ES LA PRIMERA VEZ QUE SE CARGA LA TABLA CON 1 = VERDADERO,
 --		POR ULTIMO INDICAR EL NOMBRE DEL CONSORCIO DEBIDO A QUE NO TODOS LOS CONSORCIOS TIENEN LO MISMO EN M2 DE COCHERAS Y BAULERAS
+
 
 EXEC TP.SP_GenerarEstadoDeCuentA_10 4,1000,1000,1,'Alberdi'
 EXEC TP.SP_GenerarEstadoDeCuentA_10 4,1000,1000,1,'Alzaga'
@@ -133,14 +134,17 @@ EXEC TP.SP_GenerarEstadoDeCuentA_10 4,1000,1000,1,'Azcuenaga'
 EXEC TP.SP_GenerarEstadoDeCuentA_10 4,1000,1000,1,'Pereyra Iraola'
 EXEC TP.SP_GenerarEstadoDeCuentA_10 4,1000,1000,1,'Unzue'
 
+-- 13) HAY QUE SUMAR LA DEUDA DE LA ANTERIOIR EXPENSA A LAS EXPENSAS DE ABRIL TOTAL A PAGAR
 
--- 12) IMPORTAR FORMATO JSON EL SEGUNDO MES
+EXEC tp.sp_SumarDeudaExpensasTotalAPagar_11 1,135
+
+-- 14) IMPORTAR FORMATO JSON EL SEGUNDO MES
 
 
 EXEC tp.sp_ImportarServicios_06 'C:\TP_Base_de_datos_aplicada\Grupo06\consorcios\Servicios.Servicios.json',5;
 
 
--- 13) SP CARGAR AL IMPORTE TOTAL EL COSTO DE LAS BAULERAS Y COCHERAS SEGUNDO MES
+-- 15) SP CARGAR AL IMPORTE TOTAL EL COSTO DE LAS BAULERAS Y COCHERAS SEGUNDO MES
 
 EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 5,1200,1200,'Alberdi';
 EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 5,1200,1200,'Alzaga';
@@ -149,15 +153,16 @@ EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 5,1200,1200,'Pereyra Irao
 EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 5,1200,1200,'Unzue';
 
 
--- 14) SP PARA AGREGAR EL ID EXPENSA EN LA TABLA PAGOS hacerlo cada vez que se importa un nuevo mes de la importacion de servicios
+-- 15) SP PARA AGREGAR EL ID EXPENSA EN LA TABLA PAGOS hacerlo cada vez que se importa un nuevo mes de la importacion de servicios
 
 EXEC TP.SP_RellenarPagoConIdExpensa_09
 
--- 15 ) SP PARA RELLENAR ESTADO FINANCIERO CON LOS PAGOS INGRESADOS 
+-- 16) SP PARA RELLENAR ESTADO FINANCIERO CON LOS PAGOS INGRESADOS 
 
 EXEC tp.SP_RellenarEstadoFinancieroIngresos_12 5
 
--- 16) SP CARGAR TABLA ESTADO DE CUENTA
+
+-- 17) SP CARGAR TABLA ESTADO DE CUENTA
 
 EXEC TP.SP_GenerarEstadoDeCuentA_10 5,1000,1000,0,'Alberdi'
 EXEC TP.SP_GenerarEstadoDeCuentA_10 5,1000,1000,0,'Alzaga'
@@ -165,17 +170,16 @@ EXEC TP.SP_GenerarEstadoDeCuentA_10 5,1000,1000,0,'Azcuenaga'
 EXEC TP.SP_GenerarEstadoDeCuentA_10 5,1000,1000,0,'Pereyra Iraola'
 EXEC TP.SP_GenerarEstadoDeCuentA_10 5,1000,1000,0,'Unzue'
 
--- 17) SP SUMAR DEUDA A EMPENSAS TOTAL A PAGAR
 
-EXEC tp.sp_SumarDeudaExpensasTotalAPagar_11 1,135
+-- 18) HAY QUE SUMAR LA DEUDA DE LA ANTERIOIR EXPENSA A LAS EXPENSAS DE MAYO TOTAL A PAGAR
 
+EXEC tp.sp_SumarDeudaExpensasTotalAPagar_11 136,270
 
--- 18) IMPORTAR FORMATO JSON EL TERCER MES
-
+-- 19) IMPORTAR FORMATO JSON EL TERCER MES
 
 EXEC tp.sp_ImportarServicios_06 'C:\TP_Base_de_datos_aplicada\Grupo06\consorcios\Servicios.Servicios.json',6;
 
--- 19) SP CARGAR AL IMPORTE TOTAL EL COSTO DE LAS BAULERAS Y COCHERAS SEGUNDO MES
+-- 20) SP CARGAR AL IMPORTE TOTAL EL COSTO DE LAS BAULERAS Y COCHERAS SEGUNDO MES
 
 EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 6,1200,1200,'Alberdi';
 EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 6,1200,1200,'Alzaga';
@@ -183,16 +187,19 @@ EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 6,1200,1200,'Azcuenaga';
 EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 6,1200,1200,'Pereyra Iraola';
 EXEC TP.SP_SumarCocheraBauleraAImporteTotalExpensas_08 6,1200,1200,'Unzue';
 
--- 20) SP PARA AGREGAR EL ID EXPENSA EN LA TABLA PAGOS hacerlo cada vez que se importa un nuevo mes de la importacion de servicios
+-- 21) SP PARA AGREGAR EL ID EXPENSA EN LA TABLA PAGOS hacerlo cada vez que se importa un nuevo mes de la importacion de servicios
 
 EXEC TP.SP_RellenarPagoConIdExpensa_09
 
--- 21) SP PARA RELLENAR ESTADO FINANCIERO CON LOS PAGOS INGRESADOS 
+-- 22) SP PARA RELLENAR ESTADO FINANCIERO CON LOS PAGOS INGRESADOS 
 
 EXEC tp.SP_RellenarEstadoFinancieroIngresos_12 6
 
+-- 23) HAY QUE SUMAR LA DEUDA DE LA ANTERIOIR EXPENSA A LAS EXPENSAS DE MAYO TOTAL A PAGAR
 
--- 22) SP CARGAR TABLA ESTADO DE CUENTA
+EXEC tp.sp_SumarDeudaExpensasTotalAPagar_11 271,405
+
+-- 24) SP CARGAR TABLA ESTADO DE CUENTA
 
 EXEC TP.SP_GenerarEstadoDeCuentA_10 6,1000,1000,0,'Alberdi'
 EXEC TP.SP_GenerarEstadoDeCuentA_10 6,1000,1000,0,'Alzaga'
@@ -200,19 +207,20 @@ EXEC TP.SP_GenerarEstadoDeCuentA_10 6,1000,1000,0,'Azcuenaga'
 EXEC TP.SP_GenerarEstadoDeCuentA_10 6,1000,1000,0,'Pereyra Iraola'
 EXEC TP.SP_GenerarEstadoDeCuentA_10 6,1000,1000,0,'Unzue'
 
+-- 25) Agregar nombre de empresa a Limpieza y Seguro
 
---23) SP SUMAR DEUDA A EMPENSAS TOTAL A PAGAR
-
-EXEC tp.sp_SumarDeudaExpensasTotalAPagar_11 136,270
-
-
---24) Agregar nombre de empresa a Limpieza y Seguro
 EXEC tp.sp_ActualizarNombresProveedoresLimpiezaSeguro_13 'C:\TP_Base_de_datos_aplicada\Grupo06\consorcios\datos varios proveedores.csv'
 
 SELECT * FROM TP.Administracion FOR XML AUTO, ELEMENTS;
 SELECT * FROM TP.Consorcio FOR XML AUTO, ELEMENTS;
 SELECT * FROM TP.EstadodeCuenta FOR XML AUTO, ELEMENTS;
-SELECT * FROM TP.EstadoFinanciero FOR XML AUTO, ELEMENTS;
+
+SELECT *,
+LAG(SALDOALCIERRE,1,0) OVER (PARTITION BY NOMBRECONSORCIO ORDER BY ID_EF) AS SaldoAnterior
+
+FROM TP.EstadoFinanciero
+FOR XML AUTO, ELEMENTS;
+
 SELECT * FROM TP.Expensa FOR XML AUTO, ELEMENTS;
 SELECT * FROM TP.GastoAdministracion FOR XML AUTO, ELEMENTS;
 SELECT * FROM TP.GastoExtraordinario FOR XML AUTO, ELEMENTS;
