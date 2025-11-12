@@ -1,7 +1,12 @@
 USE Com5600G06
 
--- REPORTE 1
 
+--REPORTE 1
+EXEC cspr.sp_AnalizarFlujoCajaSemanal_00 
+    @FechaInicio = '2025-04-01',
+    @FechaFin = '2025-04-30',
+    @NombreConsorcio = 'Azcuenaga';
+GO
 
 
 -- REPORTE 2
@@ -13,15 +18,8 @@ USE Com5600G06
 -- REPORTE 4
 
 
-
-
-
-
-
-
-
 -- REPORTE 5
-EXEC cspr.SP_Reporte_Top3Morosos 
+EXEC cspr.SP_Reporte_Top3Morosos_04 
     @FechaDesde = '2025-01-01', 
     @FechaHasta = '2025-12-31', 
     @TipoPersona = 0;
@@ -41,7 +39,7 @@ CREATE TABLE #Morosos (
 
 -- 2. Insertar resultado del SP
 INSERT INTO #Morosos
-EXEC cspr.SP_Reporte_Top3Morosos
+EXEC cspr.SP_Reporte_Top3Morosos_04
     @FechaDesde = '2025-01-01', 
     @FechaHasta = '2025-12-31', 
     @TipoPersona = 0;

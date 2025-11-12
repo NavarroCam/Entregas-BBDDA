@@ -82,12 +82,74 @@ la API falsa para fabricar algun dato y hacer de cuenta que lo devuelve una API.
 USE Com5600G06
 go
 
+-- ==============  CREACION ESQUEMA SP GENERAR REPORTES  =======================
+
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'cspr')
+BEGIN
+	EXEC('CREATE SCHEMA cspr')
+END 
+GO
+
+-- ==============  REPORTE 1  =======================
 
 
+IF NOT EXISTS (
+    SELECT * FROM sys.objects 
+    WHERE object_id = OBJECT_ID(N'cspr.sp_AnalizarFlujoCajaSemanal_00') AND type = 'P'
+)
+BEGIN
+    EXEC('CREATE PROCEDURE cspr.sp_AnalizarFlujoCajaSemanal_00 AS BEGIN SET NOCOUNT ON; END')
+END
+GO
 
-
-
-
+CREATE OR ALTER PROCEDURE cspr.sp_AnalizarFlujoCajaSemanal_00
+    @FechaInicio DATE,
+    @FechaFin DATE,
+    @NombreConsorcio VARCHAR(30)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- CTE 1: Filtra y Agrupa los pagos por semana y consorcio
+    WITH PagosFiltrados AS (
+        SELECT
+            P.Fecha_Pago,
+            P.Importe
+        FROM
+            ct.Pago P
+        INNER JOIN ct.Persona PE ON PE.CVU_CBU = P.CVU_CBU
+        INNER JOIN ct.UnidadFuncional U ON U.CVU_CBU = PE.CVU_CBU
+        WHERE
+            U.NombreConsorcio = @NombreConsorcio
+            AND P.Fecha_Pago >= @FechaInicio
+            AND P.Fecha_Pago <= @FechaFin
+    ),
+    PagosSemanales AS (
+        SELECT
+            CAST(DATEPART(yy, Fecha_Pago) AS VARCHAR(4)) + '-' + RIGHT('0' + CAST(DATEPART(wk, Fecha_Pago) AS VARCHAR(2)), 2) AS SemanaID,
+            MIN(Fecha_Pago) AS FechaInicioSemana,
+            SUM(Importe) AS RecaudacionSemanal
+        FROM
+            PagosFiltrados
+        GROUP BY
+            DATEPART(yy, Fecha_Pago), DATEPART(wk, Fecha_Pago)
+    )
+    -- CTE 2: Aplicar Windows Functions para el acumulado y promedio
+    SELECT
+        PS.SemanaID,
+        PS.FechaInicioSemana,
+        PS.RecaudacionSemanal AS RecaudacionSemanalTotal,
+        
+        AVG(PS.RecaudacionSemanal) OVER (ORDER BY PS.SemanaID ROWS UNBOUNDED PRECEDING) AS PromedioAcumulado,
+        
+        SUM(PS.RecaudacionSemanal) OVER (ORDER BY PS.SemanaID ROWS UNBOUNDED PRECEDING) AS AcumuladoProgresivo
+    FROM
+        PagosSemanales PS
+    ORDER BY
+        PS.SemanaID
+    FOR XML PATH('Semana'), ROOT('ReporteFlujoCaja');
+END
+GO
 
 
 
