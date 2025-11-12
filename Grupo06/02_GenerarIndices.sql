@@ -1,10 +1,7 @@
-/*
-Entrega 6: Genere índices para optimizar la ejecución de las consultas de los reportes. Debe existir un
+/*  Entrega 6 – Reportes y API
+Genere índices para optimizar la ejecución de las consultas de los reportes. Debe existir un
 script adicional con la generación de índices.
 
-*/
-
-/*
 FECHA DE ENTREGA: 14/11/2025
 NRO DE COMISION: 02-5600
 NRO DE GRUPO: GRUPO 06
@@ -17,6 +14,12 @@ NOMBRE, APELLIDO,  DNI Y NICK DE LOS INTEGRANTES:
 • Franchetti Luciana-42775831-LuFranchetti 
 • Jaureguiberry Facundo Agustin-42056476-JaureFacu 
 • Gambaro Lartigue Guadalupe-45206331-GuadaGambaro
+
+Notación y convenciones:
+Esquemas:
+ - ct -> Creacion de tablas
+ - csp -> Creacion de Store Procedures de Importación
+ - cspr -> Creacion de Store Procedures de Reportes
 */
 
 

@@ -140,7 +140,6 @@ EXEC csp.sp_SumarDeudaExpensasTotalAPagar_11 1,135
 
 -- 14) IMPORTAR FORMATO JSON EL SEGUNDO MES
 
-
 EXEC csp.sp_ImportarServicios_06 'C:\TP_Base_de_datos_aplicada\Grupo06\consorcios\Servicios.Servicios.json',5;
 
 
