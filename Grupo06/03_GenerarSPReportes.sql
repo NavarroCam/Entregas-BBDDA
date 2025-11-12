@@ -61,7 +61,75 @@ Gambaro Lartigue Guadalupe-45206331-GuadaGambaro
 
 Notación y convenciones:
 Esquemas:
- - ct ? Creacion de tablas
- - csp ? Creacion de Store Procedures de Importación
-
+ - ct -> Creacion de tablas
+ - csp -> Creacion de Store Procedures de Importación
+ - cspr -> Creacion de Store Procedures de Reportes
 */
+
+
+-- Finalmente un ejemplo con una API falsa:
+-- https://jsonplaceholder.typicode.com
+-- Lo interesante de este ejemplo es como pasarle los parametros, 
+-- los dos anteriores eran ejemplos de llamadas GET donde el parametro 
+-- va en la url, pero no tiene porque ser asi.
+ 
+/*
+Esta API rebota lo que vos le mandas. Lo que le pasas te lo devuelve.
+Para el TP si NO encontramos ninguna API que nos sirva para lo que queremos, podemos usar 
+la API falsa para fabricar algun dato y hacer de cuenta que lo devuelve una API. 
+*/
+ 
+USE Com5600G06
+go
+
+
+
+
+
+
+
+
+
+
+
+-- ==============  REPORTE 5  =======================
+IF NOT EXISTS (
+    SELECT * FROM sys.objects 
+    WHERE object_id = OBJECT_ID(N'cspr.SP_Reporte_Top3Morosos_04') AND type = 'P'
+)
+BEGIN
+    EXEC('CREATE PROCEDURE cspr.SP_Reporte_Top3Morosos_04 AS BEGIN SET NOCOUNT ON; END')
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE cspr.SP_Reporte_Top3Morosos_04(
+    @FechaDesde DATE,
+    @FechaHasta DATE,
+    @TipoPersona BIT = NULL
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT TOP 3
+        P.DNI_Persona AS DNI,
+        P.CorreoElectronico AS Email,
+        P.Telefono AS Telefono,
+        P.Nombres AS Nombres,
+        P.Apellido AS Apellido,
+        SUM(EC.Deuda + EC.InteresPorMora1V + EC.InteresPorMora2V) AS MorosidadTotal
+    FROM ct.EstadoDeCuenta EC
+
+    INNER JOIN ct.Expensa E ON EC.ID_EstadoDeCuenta = E.ID_Expensa
+    INNER JOIN ct.UnidadFuncional UF ON E.ID_UF = UF.ID_UF AND E.NombreConsorcio = UF.NombreConsorcio
+    INNER JOIN ct.Persona P ON UF.CVU_CBU = P.CVU_CBU AND UF.Tipo = P.Tipo
+    WHERE E.FechaEmision >= @FechaDesde AND E.FechaEmision <= @FechaHasta AND (@TipoPersona IS NULL OR P.Tipo = @TipoPersona)
+    GROUP BY P.DNI_Persona, P.CorreoElectronico, P.Telefono, P.Nombres, P.Apellido, P.CVU_CBU
+    HAVING SUM(EC.Deuda + EC.InteresPorMora1V + EC.InteresPorMora2V) > 0
+    ORDER BY MorosidadTotal DESC;
+END
+GO
+
+
+
