@@ -132,21 +132,12 @@ GO
 
 /* Presente un cuadro cruzado con la recaudaci�n total desagregada seg�n su procedencia
 (ordinario, extraordinario, etc.) seg�n el periodo. */
-IF NOT EXISTS (
-    SELECT * FROM sys.objects 
-    WHERE object_id = OBJECT_ID(N'cspr.sp_RecaudacionDesagregadaPorProcedencia_02') AND type = 'P'
-)
-BEGIN
-    EXEC('CREATE PROCEDURE cspr.sp_RecaudacionDesagregadaPorProcedencia_02 AS BEGIN SET NOCOUNT ON; END')
-END
-GO
-
 CREATE OR ALTER PROCEDURE cspr.sp_RecaudacionDesagregadaPorProcedencia_02
     @FechaInicio DATE,
     @FechaFin DATE,
     @NombreConsorcio VARCHAR(30) = NULL,
     @ID_Administracion INT = NULL,
-    @TipoPeriodo VARCHAR(10) = 'MENSUAL' -- MENSUAL, TRIMESTRAL, ANUAL. Acá mensual 
+    @TipoPeriodo VARCHAR(10) = 'MENSUAL' -- MENSUAL, TRIMESTRAL, ANUAL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -154,13 +145,13 @@ BEGIN
     -- Validar parámetros
     IF @FechaInicio > @FechaFin
     BEGIN
-        RAISERROR('La fecha de inicio no puede ser mayor que la fecha fin.', 15, 1)
-        RETURN
+        RAISERROR('La fecha de inicio no puede ser mayor que la fecha fin.', 15, 1);
+        RETURN;
     END
+    -- CTE 1: Clasificación de pagos por procedencia
+    ;WITH RecaudacionPorProcedencia AS (
 
-    -- CTE para identificar la procedencia de cada pago
-    WITH RecaudacionPorProcedencia AS (
-        -- Pagos Ordinarios (expensas regulares sin gastos extraordinarios)
+        -- Pagos Ordinarios (sin gastos extraordinarios)
         SELECT 
             P.ID_Pago,
             P.Fecha_Pago,
@@ -181,7 +172,7 @@ BEGIN
         
         UNION ALL
         
-        -- Pagos Extraordinarios (con gastos extraordinarios)
+        -- Pagos Extraordinarios
         SELECT 
             P.ID_Pago,
             P.Fecha_Pago,
@@ -199,7 +190,7 @@ BEGIN
         
         UNION ALL
         
-        -- Otros ingresos (pagos sin expensa asociada)
+        -- Otros ingresos
         SELECT 
             P.ID_Pago,
             P.Fecha_Pago,
@@ -212,22 +203,24 @@ BEGIN
         WHERE P.Fecha_Pago BETWEEN @FechaInicio AND @FechaFin
           AND P.ID_Expensa IS NULL
     ),
-    
-    -- Definir período según el tipo seleccionado
+
+    -- CTE 2: Construcción de períodos según @TipoPeriodo
     Periodos AS (
         SELECT 
             CASE 
                 WHEN @TipoPeriodo = 'ANUAL' THEN CAST(YEAR(R.Fecha_Pago) AS VARCHAR(4))
                 WHEN @TipoPeriodo = 'TRIMESTRAL' THEN 
                     CAST(YEAR(R.Fecha_Pago) AS VARCHAR(4)) + '-T' + CAST(DATEPART(QUARTER, R.Fecha_Pago) AS VARCHAR(1))
-                ELSE -- MENSUAL por defecto
+                ELSE -- MENSUAL (default)
                     CAST(YEAR(R.Fecha_Pago) AS VARCHAR(4)) + '-' + RIGHT('0' + CAST(MONTH(R.Fecha_Pago) AS VARCHAR(2)), 2)
             END AS Periodo,
+
             CASE 
                 WHEN @TipoPeriodo = 'ANUAL' THEN YEAR(R.Fecha_Pago)
                 WHEN @TipoPeriodo = 'TRIMESTRAL' THEN YEAR(R.Fecha_Pago) * 10 + DATEPART(QUARTER, R.Fecha_Pago)
                 ELSE YEAR(R.Fecha_Pago) * 100 + MONTH(R.Fecha_Pago)
             END AS OrdenPeriodo,
+
             R.Procedencia,
             SUM(R.Importe) AS TotalRecaudado,
             R.NombreConsorcio,
@@ -235,7 +228,7 @@ BEGIN
         FROM RecaudacionPorProcedencia R
         WHERE (@NombreConsorcio IS NULL OR R.NombreConsorcio = @NombreConsorcio)
           AND (@ID_Administracion IS NULL OR R.ID_Administracion = @ID_Administracion)
-        GROUP BY 
+        GROUP BY
             CASE 
                 WHEN @TipoPeriodo = 'ANUAL' THEN CAST(YEAR(R.Fecha_Pago) AS VARCHAR(4))
                 WHEN @TipoPeriodo = 'TRIMESTRAL' THEN 
@@ -252,8 +245,8 @@ BEGIN
             R.NombreConsorcio,
             R.ID_Administracion
     )
-    
-    -- Crear el cuadro cruzado con un pivot
+
+    -- PIVOT
     SELECT 
         Periodo,
         ISNULL([ORDINARIO], 0) AS Ordinario,
@@ -277,7 +270,7 @@ BEGIN
         FOR Procedencia IN ([ORDINARIO], [EXTRAORDINARIO], [OTROS])
     ) AS PivotTable
     ORDER BY OrdenPeriodo;
-    
+
 END
 GO
 
