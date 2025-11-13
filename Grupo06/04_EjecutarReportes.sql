@@ -1,5 +1,5 @@
 /*  
-ENTREGA 6 – Reportes y API
+ENTREGA 6 ï¿½ Reportes y API
 FECHA DE ENTREGA: 14/11/2025
 NRO DE COMISION: 02-5600
 NRO DE GRUPO: GRUPO 06
@@ -13,10 +13,10 @@ Franchetti Luciana-42775831-LuFranchetti
 Jaureguiberry Facundo Agustin-42056476-JaureFacu 
 Gambaro Lartigue Guadalupe-45206331-GuadaGambaro
 
-Notación y convenciones:
+Notaciï¿½n y convenciones:
 Esquemas:
  - ct -> Creacion de tablas
- - csp -> Creacion de Store Procedures de Importación
+ - csp -> Creacion de Store Procedures de Importaciï¿½n
  - cspr -> Creacion de Store Procedures de Reportes
 
 */
@@ -25,7 +25,7 @@ Esquemas:
 USE Com5600G06
 
 -- REPORTE 1
-/* Se desea analizar el flujo de caja en forma semanal. Debe presentar la recaudación por
+/* Se desea analizar el flujo de caja en forma semanal. Debe presentar la recaudaciï¿½n por
 pagos ordinarios y extraordinarios de cada semana, el promedio en el periodo, y el
 acumulado progresivo.*/
 
@@ -38,13 +38,20 @@ GO
 
 
 -- REPORTE 2
-/* Presente el total de recaudación por mes y departamento en formato de tabla cruzada. */
+/* Presente el total de recaudaciï¿½n por mes y departamento en formato de tabla cruzada. */
 
 
 -- REPORTE 3
-/* Presente un cuadro cruzado con la recaudación total desagregada según su procedencia
-(ordinario, extraordinario, etc.) según el periodo. */
-
+/* Presente un cuadro cruzado con la recaudaciï¿½n total desagregada segï¿½n su procedencia
+(ordinario, extraordinario, etc.) segï¿½n el periodo. */
+PRINT '1. Todos los consorcios - PerÃ­odo mensual:'
+EXEC cspr.sp_RecaudacionDesagregadaPorProcedencia 
+    @FechaInicio = '2023-01-01',
+    @FechaFin = '2023-12-31',
+    @NombreConsorcio = NULL,
+    @ID_Administracion = NULL,
+    @TipoPeriodo = 'MENSUAL';
+GO
 
 
 -- REPORTE 4
@@ -53,9 +60,9 @@ GO
 
 
 -- REPORTE 5
-/* Obtenga los 3 (tres) propietarios con mayor morosidad. Presente información de contacto y
-DNI de los propietarios para que la administración los pueda contactar o remitir el trámite al
-estudio jurídico.*/
+/* Obtenga los 3 (tres) propietarios con mayor morosidad. Presente informaciï¿½n de contacto y
+DNI de los propietarios para que la administraciï¿½n los pueda contactar o remitir el trï¿½mite al
+estudio jurï¿½dico.*/
 
 EXEC cspr.SP_Reporte_Top3Morosos_04 
     @FechaDesde = '2025-03-01', 
@@ -65,7 +72,7 @@ GO
 
 
 -- REPORTE 6
-/* Muestre las fechas de pagos de expensas ordinarias de cada UF y la cantidad de días que
+/* Muestre las fechas de pagos de expensas ordinarias de cada UF y la cantidad de dï¿½as que
 pasan entre un pago y el siguiente, para el conjunto examinado.*/
 
 
