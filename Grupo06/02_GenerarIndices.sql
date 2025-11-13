@@ -1,6 +1,6 @@
-/*  Entrega 6 – Reportes y API
-Genere índices para optimizar la ejecución de las consultas de los reportes. Debe existir un
-script adicional con la generación de índices.
+/*  Entrega 6 ï¿½ Reportes y API
+Genere ï¿½ndices para optimizar la ejecuciï¿½n de las consultas de los reportes. Debe existir un
+script adicional con la generaciï¿½n de ï¿½ndices.
 
 FECHA DE ENTREGA: 14/11/2025
 NRO DE COMISION: 02-5600
@@ -8,17 +8,17 @@ NRO DE GRUPO: GRUPO 06
 NOMBRE DE LA MATERIA: BASE DE DATOS APLICADAS
 
 NOMBRE, APELLIDO,  DNI Y NICK DE LOS INTEGRANTES:
-• Juchani Javier Andres-36938637-jajuchani 
-• Maria Jose Mariscal-92869937-majomariscal 
-• Navarro Ojeda Camila Micaela-44689707-NavarroCam 
-• Franchetti Luciana-42775831-LuFranchetti 
-• Jaureguiberry Facundo Agustin-42056476-JaureFacu 
-• Gambaro Lartigue Guadalupe-45206331-GuadaGambaro
+ï¿½ Juchani Javier Andres-36938637-jajuchani 
+ï¿½ Maria Jose Mariscal-92869937-majomariscal 
+ï¿½ Navarro Ojeda Camila Micaela-44689707-NavarroCam 
+ï¿½ Franchetti Luciana-42775831-LuFranchetti 
+ï¿½ Jaureguiberry Facundo Agustin-42056476-JaureFacu 
+ï¿½ Gambaro Lartigue Guadalupe-45206331-GuadaGambaro
 
-Notación y convenciones:
+Notaciï¿½n y convenciones:
 Esquemas:
  - ct -> Creacion de tablas
- - csp -> Creacion de Store Procedures de Importación
+ - csp -> Creacion de Store Procedures de Importaciï¿½n
  - cspr -> Creacion de Store Procedures de Reportes
 */
 
@@ -88,5 +88,26 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Persona_Tipo' AND obje
 BEGIN
     CREATE NONCLUSTERED INDEX IX_Persona_Tipo
     ON ct.Persona (Tipo);
+END
+GO
+
+IF NOT EXISTS (
+    SELECT 1 FROM sys.indexes 
+    WHERE name = 'IX_Pago_Fecha_Expensa' AND object_id = OBJECT_ID('ct.Pago')
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Pago_Fecha_Expensa
+    ON ct.Pago (Fecha_Pago, ID_Expensa)
+    INCLUDE (Importe, CVU_CBU);
+END
+GO
+
+IF NOT EXISTS (
+    SELECT 1 FROM sys.indexes 
+    WHERE name = 'IX_GastoExtraordinario_Expensa' AND object_id = OBJECT_ID('ct.GastoExtraordinario')
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_GastoExtraordinario_Expensa
+    ON ct.GastoExtraordinario (ID_Expensa);
 END
 GO

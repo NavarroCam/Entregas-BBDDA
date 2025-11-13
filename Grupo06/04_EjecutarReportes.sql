@@ -45,9 +45,9 @@ GO
 /* Presente un cuadro cruzado con la recaudaci�n total desagregada seg�n su procedencia
 (ordinario, extraordinario, etc.) seg�n el periodo. */
 PRINT '1. Todos los consorcios - Período mensual:'
-EXEC cspr.sp_RecaudacionDesagregadaPorProcedencia 
-    @FechaInicio = '2023-01-01',
-    @FechaFin = '2023-12-31',
+EXEC cspr.sp_RecaudacionDesagregadaPorProcedencia_02 
+    @FechaInicio = '2025-04-01',
+    @FechaFin = '2025-05-01',
     @NombreConsorcio = NULL,
     @ID_Administracion = NULL,
     @TipoPeriodo = 'MENSUAL';
