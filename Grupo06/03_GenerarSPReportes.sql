@@ -287,6 +287,78 @@ GO
 
 /* Obtenga los 5 (cinco) meses de mayores gastos y los 5 (cinco) de mayores ingresos. */
 
+IF NOT EXISTS (
+    SELECT * FROM sys.objects 
+    WHERE object_id = OBJECT_ID(N'cspr.sp_mesesmayorgastoingreso_04') AND type = 'P'
+)
+BEGIN
+    EXEC('CREATE PROCEDURE cspr.sp_mesesmayorgastoingreso_04 AS BEGIN SET NOCOUNT ON; END')
+END
+GO
+
+create or alter procedure cspr.sp_mesesmayorgastoingreso_04
+	@fechaDesde DATE,
+	@fechaHasta DATE,
+	@nombreconsorcio VARCHAR(30)
+
+AS
+BEGIN	
+	SET NOCOUNT ON;
+
+--VERIFICAR QUE EL CONSORCIO EXISTA
+
+IF NOT EXISTS (SELECT 1 FROM CT.Consorcio WHERE Nombre= @nombreconsorcio)
+BEGIN
+	SELECT 'Error: El consorcio no se encuentra regristrado' AS Resultado;
+	RETURN;
+END;
+
+
+
+--CTE PARA OBTENER LOS 5 MESES DE MAYORES GASTOS
+WITH topGastos AS (
+		SELECT TOP 5
+		FORMAT (E.Fecha, 'yyyy-MM') AS Periodo,
+		E.EgresoGastoMensual as Importe,
+		'GASTO' AS Tipo
+		FROM ct.EstadoFinanciero E
+		WHERE E.NombreConsorcio	= @nombreconsorcio
+		AND E.Fecha >= @fechaDesde
+		AND E.Fecha <= @fechaHasta
+		ORDER BY E.EgresoGastoMensual DESC
+		),
+
+--CTE 2 PARA OBTENER LOS 5 MESES CON MAYORES INGRESOS
+ TOPINGRESOS AS (
+	SELECT TOP 5
+	FORMAT (E.FECHA, 'yyyy-MM') AS Periodo, 
+	E.IngresoPagoMensual AS Importe,
+	'INGRESO' AS Tipo
+	from ct.EstadoFinanciero E
+	WHERE E.NombreConsorcio = @nombreconsorcio
+	AND E.Fecha >= @fechaDesde
+	AND E.Fecha <= @fechaHasta
+	ORDER BY E.IngresoPagoMensual DESC
+	)
+
+SELECT 
+	Periodo,
+	Importe,
+	Tipo,
+	@nombreconsorcio AS NombreConsorcio
+FROM topgastos
+UNION ALL
+SELECT 
+	Periodo,
+	Importe,
+	Tipo,
+	@nombreconsorcio AS NombreConsorcio
+FROM TOPINGRESOS
+ORDER BY Importe DESC;
+END
+GO
+
+--DROP PROCEDURE cspr.sp_mesesmayorgastoingreso_04;	
 
 
 -- ==============  REPORTE 5  =======================

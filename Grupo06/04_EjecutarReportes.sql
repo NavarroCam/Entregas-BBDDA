@@ -57,6 +57,14 @@ GO
 -- REPORTE 4
 /* Obtenga los 5 (cinco) meses de mayores gastos y los 5 (cinco) de mayores ingresos. */
 
+EXEC cspr.sp_mesesmayorgastoingreso_04
+	@Fechadesde='2025-03-01',
+	@FechaHasta = '2025-06-30', 
+	@nombreconsorcio= 'Azcuenaga';
+GO
+
+--select * from ct.estadofinanciero where nombreconsorcio= 'Azcuenaga'
+
 
 
 -- REPORTE 5
