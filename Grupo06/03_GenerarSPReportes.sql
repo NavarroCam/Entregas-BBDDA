@@ -125,6 +125,13 @@ GO
 
 -- ==============  REPORTE 2  =======================
 /* Presente el total de recaudaci�n por mes y departamento en formato de tabla cruzada. */
+
+
+
+-- ==============  REPORTE 3  =======================
+
+/* Presente un cuadro cruzado con la recaudaci�n total desagregada seg�n su procedencia
+(ordinario, extraordinario, etc.) seg�n el periodo. */
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
     WHERE object_id = OBJECT_ID(N'cspr.sp_RecaudacionDesagregadaPorProcedencia_02') AND type = 'P'
@@ -273,13 +280,6 @@ BEGIN
     
 END
 GO
-
-
-
--- ==============  REPORTE 3  =======================
-
-/* Presente un cuadro cruzado con la recaudaci�n total desagregada seg�n su procedencia
-(ordinario, extraordinario, etc.) seg�n el periodo. */
 
 
 
