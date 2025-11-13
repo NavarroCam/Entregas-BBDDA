@@ -147,10 +147,10 @@ BEGIN
     BEGIN
         RAISERROR('La fecha de inicio no puede ser mayor que la fecha fin.', 15, 1);
         RETURN;
-    END
-    -- CTE 1: Clasificación de pagos por procedencia
-    ;WITH RecaudacionPorProcedencia AS (
+    END;
 
+    -- CTE 1: Clasificación de pagos por procedencia (AGREGAR ; antes del WITH)
+    ;WITH RecaudacionPorProcedencia AS (
         -- Pagos Ordinarios (sin gastos extraordinarios)
         SELECT 
             P.ID_Pago,
@@ -273,7 +273,6 @@ BEGIN
 
 END
 GO
-
 
 
 -- ==============  REPORTE 4  =======================

@@ -44,15 +44,11 @@ GO
 -- REPORTE 3
 /* Presente un cuadro cruzado con la recaudaci�n total desagregada seg�n su procedencia
 (ordinario, extraordinario, etc.) seg�n el periodo. */
-PRINT '1. Todos los consorcios - Período mensual:'
-EXEC cspr.sp_RecaudacionDesagregadaPorProcedencia_02 
-    @FechaInicio = '2025-04-01',
-    @FechaFin = '2025-05-01',
-    @NombreConsorcio = NULL,
-    @ID_Administracion = NULL,
+EXEC cspr.sp_RecaudacionDesagregadaPorProcedencia_02
+    @FechaInicio = '2025-01-01',
+    @FechaFin = '2025-12-31',
     @TipoPeriodo = 'MENSUAL';
 GO
-
 
 -- REPORTE 4
 /* Obtenga los 5 (cinco) meses de mayores gastos y los 5 (cinco) de mayores ingresos. */
