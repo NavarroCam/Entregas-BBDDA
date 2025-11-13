@@ -1,18 +1,18 @@
-/* Entrega 6 – Reportes y API
-Cada reporte debe demostrarse con la ejecución de una consulta, que deberá estar incluida
-en un store procedure. El SP admitirá parámetros (al menos tres) para filtrar los resultados,
+/* Entrega 6 ï¿½ Reportes y API
+Cada reporte debe demostrarse con la ejecuciï¿½n de una consulta, que deberï¿½ estar incluida
+en un store procedure. El SP admitirï¿½ parï¿½metros (al menos tres) para filtrar los resultados,
 quedando a criterio del grupo determinar los mismos. Pueden combinar en un script la
-creación de todos los reportes, luego en otro script harían las invocaciones.
+creaciï¿½n de todos los reportes, luego en otro script harï¿½an las invocaciones.
 
-Al menos dos de los reportes deberán generarse en XML, que mostrarán en SSMS. No es
+Al menos dos de los reportes deberï¿½n generarse en XML, que mostrarï¿½n en SSMS. No es
 necesario que lo creen en el filesystem.
 
-Deberán incorporar al menos una API como fuente de datos externa. Queda a criterio del
-grupo qué API utilizar y para qué. Algunas ideas: pueden usar la API que devuelve la
-cotización del dólar para convertir valores (en ese caso podrían guardar valores en dólares
+Deberï¿½n incorporar al menos una API como fuente de datos externa. Queda a criterio del
+grupo quï¿½ API utilizar y para quï¿½. Algunas ideas: pueden usar la API que devuelve la
+cotizaciï¿½n del dï¿½lar para convertir valores (en ese caso podrï¿½an guardar valores en dï¿½lares
 y pesos); la API de feriados para no emitir comprobantes o generar vencimientos en
 domingos o feriados; una API para enviar notificaciones por whatsapp o email, o para
-generar PDFs en base a reportes, etc. No es necesario que codifiquen la API (tampoco está
+generar PDFs en base a reportes, etc. No es necesario que codifiquen la API (tampoco estï¿½
 prohibido). Deben consumir al menos UNA API para sumar una funcionalidad al sistema.
 Esto pueden realizarlo con T-SQL tal como se ve en la unidad 2.
 
@@ -29,10 +29,10 @@ Franchetti Luciana-42775831-LuFranchetti
 Jaureguiberry Facundo Agustin-42056476-JaureFacu 
 Gambaro Lartigue Guadalupe-45206331-GuadaGambaro
 
-Notación y convenciones:
+Notaciï¿½n y convenciones:
 Esquemas:
  - ct -> Creacion de tablas
- - csp -> Creacion de Store Procedures de Importación
+ - csp -> Creacion de Store Procedures de Importaciï¿½n
  - cspr -> Creacion de Store Procedures de Reportes
 */
 
@@ -61,7 +61,7 @@ END
 GO
 
 -- ==============  REPORTE 1  =======================
-/* Se desea analizar el flujo de caja en forma semanal. Debe presentar la recaudación por
+/* Se desea analizar el flujo de caja en forma semanal. Debe presentar la recaudaciï¿½n por
 pagos ordinarios y extraordinarios de cada semana, el promedio en el periodo, y el
 acumulado progresivo. */
 IF NOT EXISTS (
@@ -124,15 +124,162 @@ GO
 
 
 -- ==============  REPORTE 2  =======================
-/* Presente el total de recaudación por mes y departamento en formato de tabla cruzada. */
+/* Presente el total de recaudaciï¿½n por mes y departamento en formato de tabla cruzada. */
+IF NOT EXISTS (
+    SELECT * FROM sys.objects 
+    WHERE object_id = OBJECT_ID(N'cspr.sp_RecaudacionDesagregadaPorProcedencia_02') AND type = 'P'
+)
+BEGIN
+    EXEC('CREATE PROCEDURE cspr.sp_RecaudacionDesagregadaPorProcedencia_02 AS BEGIN SET NOCOUNT ON; END')
+END
+GO
 
+CREATE OR ALTER PROCEDURE cspr.sp_RecaudacionDesagregadaPorProcedencia_02
+    @FechaInicio DATE,
+    @FechaFin DATE,
+    @NombreConsorcio VARCHAR(30) = NULL,
+    @ID_Administracion INT = NULL,
+    @TipoPeriodo VARCHAR(10) = 'MENSUAL' -- MENSUAL, TRIMESTRAL, ANUAL. AcÃ¡ mensual 
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- Validar parÃ¡metros
+    IF @FechaInicio > @FechaFin
+    BEGIN
+        RAISERROR('La fecha de inicio no puede ser mayor que la fecha fin.', 15, 1)
+        RETURN
+    END
+
+    -- CTE para identificar la procedencia de cada pago
+    WITH RecaudacionPorProcedencia AS (
+        -- Pagos Ordinarios (expensas regulares sin gastos extraordinarios)
+        SELECT 
+            P.ID_Pago,
+            P.Fecha_Pago,
+            P.Importe,
+            'ORDINARIO' AS Procedencia,
+            E.ID_Expensa,
+            E.NombreConsorcio,
+            C.ID_Administracion
+        FROM ct.Pago P
+        INNER JOIN ct.Expensa E ON P.ID_Expensa = E.ID_Expensa
+        INNER JOIN ct.Consorcio C ON E.NombreConsorcio = C.Nombre
+        WHERE P.Fecha_Pago BETWEEN @FechaInicio AND @FechaFin
+          AND P.ID_Expensa IS NOT NULL
+          AND NOT EXISTS (
+              SELECT 1 FROM ct.GastoExtraordinario GE 
+              WHERE GE.ID_Expensa = P.ID_Expensa
+          )
+        
+        UNION ALL
+        
+        -- Pagos Extraordinarios (con gastos extraordinarios)
+        SELECT 
+            P.ID_Pago,
+            P.Fecha_Pago,
+            P.Importe,
+            'EXTRAORDINARIO' AS Procedencia,
+            E.ID_Expensa,
+            E.NombreConsorcio,
+            C.ID_Administracion
+        FROM ct.Pago P
+        INNER JOIN ct.Expensa E ON P.ID_Expensa = E.ID_Expensa
+        INNER JOIN ct.Consorcio C ON E.NombreConsorcio = C.Nombre
+        INNER JOIN ct.GastoExtraordinario GE ON GE.ID_Expensa = P.ID_Expensa
+        WHERE P.Fecha_Pago BETWEEN @FechaInicio AND @FechaFin
+          AND P.ID_Expensa IS NOT NULL
+        
+        UNION ALL
+        
+        -- Otros ingresos (pagos sin expensa asociada)
+        SELECT 
+            P.ID_Pago,
+            P.Fecha_Pago,
+            P.Importe,
+            'OTROS' AS Procedencia,
+            NULL AS ID_Expensa,
+            NULL AS NombreConsorcio,
+            NULL AS ID_Administracion
+        FROM ct.Pago P
+        WHERE P.Fecha_Pago BETWEEN @FechaInicio AND @FechaFin
+          AND P.ID_Expensa IS NULL
+    ),
+    
+    -- Definir perÃ­odo segÃºn el tipo seleccionado
+    Periodos AS (
+        SELECT 
+            CASE 
+                WHEN @TipoPeriodo = 'ANUAL' THEN CAST(YEAR(R.Fecha_Pago) AS VARCHAR(4))
+                WHEN @TipoPeriodo = 'TRIMESTRAL' THEN 
+                    CAST(YEAR(R.Fecha_Pago) AS VARCHAR(4)) + '-T' + CAST(DATEPART(QUARTER, R.Fecha_Pago) AS VARCHAR(1))
+                ELSE -- MENSUAL por defecto
+                    CAST(YEAR(R.Fecha_Pago) AS VARCHAR(4)) + '-' + RIGHT('0' + CAST(MONTH(R.Fecha_Pago) AS VARCHAR(2)), 2)
+            END AS Periodo,
+            CASE 
+                WHEN @TipoPeriodo = 'ANUAL' THEN YEAR(R.Fecha_Pago)
+                WHEN @TipoPeriodo = 'TRIMESTRAL' THEN YEAR(R.Fecha_Pago) * 10 + DATEPART(QUARTER, R.Fecha_Pago)
+                ELSE YEAR(R.Fecha_Pago) * 100 + MONTH(R.Fecha_Pago)
+            END AS OrdenPeriodo,
+            R.Procedencia,
+            SUM(R.Importe) AS TotalRecaudado,
+            R.NombreConsorcio,
+            R.ID_Administracion
+        FROM RecaudacionPorProcedencia R
+        WHERE (@NombreConsorcio IS NULL OR R.NombreConsorcio = @NombreConsorcio)
+          AND (@ID_Administracion IS NULL OR R.ID_Administracion = @ID_Administracion)
+        GROUP BY 
+            CASE 
+                WHEN @TipoPeriodo = 'ANUAL' THEN CAST(YEAR(R.Fecha_Pago) AS VARCHAR(4))
+                WHEN @TipoPeriodo = 'TRIMESTRAL' THEN 
+                    CAST(YEAR(R.Fecha_Pago) AS VARCHAR(4)) + '-T' + CAST(DATEPART(QUARTER, R.Fecha_Pago) AS VARCHAR(1))
+                ELSE 
+                    CAST(YEAR(R.Fecha_Pago) AS VARCHAR(4)) + '-' + RIGHT('0' + CAST(MONTH(R.Fecha_Pago) AS VARCHAR(2)), 2)
+            END,
+            CASE 
+                WHEN @TipoPeriodo = 'ANUAL' THEN YEAR(R.Fecha_Pago)
+                WHEN @TipoPeriodo = 'TRIMESTRAL' THEN YEAR(R.Fecha_Pago) * 10 + DATEPART(QUARTER, R.Fecha_Pago)
+                ELSE YEAR(R.Fecha_Pago) * 100 + MONTH(R.Fecha_Pago)
+            END,
+            R.Procedencia,
+            R.NombreConsorcio,
+            R.ID_Administracion
+    )
+    
+    -- Crear el cuadro cruzado con un pivot
+    SELECT 
+        Periodo,
+        ISNULL([ORDINARIO], 0) AS Ordinario,
+        ISNULL([EXTRAORDINARIO], 0) AS Extraordinario,
+        ISNULL([OTROS], 0) AS Otros,
+        ISNULL([ORDINARIO], 0) + ISNULL([EXTRAORDINARIO], 0) + ISNULL([OTROS], 0) AS TotalPeriodo,
+        NombreConsorcio,
+        ID_Administracion
+    FROM (
+        SELECT 
+            Periodo,
+            OrdenPeriodo,
+            Procedencia,
+            TotalRecaudado,
+            NombreConsorcio,
+            ID_Administracion
+        FROM Periodos
+    ) AS SourceTable
+    PIVOT (
+        SUM(TotalRecaudado)
+        FOR Procedencia IN ([ORDINARIO], [EXTRAORDINARIO], [OTROS])
+    ) AS PivotTable
+    ORDER BY OrdenPeriodo;
+    
+END
+GO
 
 
 
 -- ==============  REPORTE 3  =======================
 
-/* Presente un cuadro cruzado con la recaudación total desagregada según su procedencia
-(ordinario, extraordinario, etc.) según el periodo. */
+/* Presente un cuadro cruzado con la recaudaciï¿½n total desagregada segï¿½n su procedencia
+(ordinario, extraordinario, etc.) segï¿½n el periodo. */
 
 
 
@@ -144,9 +291,9 @@ GO
 
 -- ==============  REPORTE 5  =======================
 
-/* Obtenga los 3 (tres) propietarios con mayor morosidad. Presente información de contacto y
-DNI de los propietarios para que la administración los pueda contactar o remitir el trámite al
-estudio jurídico. */
+/* Obtenga los 3 (tres) propietarios con mayor morosidad. Presente informaciï¿½n de contacto y
+DNI de los propietarios para que la administraciï¿½n los pueda contactar o remitir el trï¿½mite al
+estudio jurï¿½dico. */
 
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
@@ -189,7 +336,7 @@ GO
 
 
 -- ==============  REPORTE 6  =======================
-/* Muestre las fechas de pagos de expensas ordinarias de cada UF y la cantidad de días que
+/* Muestre las fechas de pagos de expensas ordinarias de cada UF y la cantidad de dï¿½as que
 pasan entre un pago y el siguiente, para el conjunto examinado.*/ 
 
 
@@ -200,9 +347,9 @@ pasan entre un pago y el siguiente, para el conjunto examinado.*/
 
 -- ==============  API  =======================
 /*
-La API actúa como un eco: recibe los datos de un determinado consorcio 
-y devuelve la misma información junto con un ID de transacción (generalmente 101) 
-para confirmar que el envío y recepcion de datos fue exitoso 
+La API actï¿½a como un eco: recibe los datos de un determinado consorcio 
+y devuelve la misma informaciï¿½n junto con un ID de transacciï¿½n (generalmente 101) 
+para confirmar que el envï¿½o y recepcion de datos fue exitoso 
 y que el formato JSON es correcto
 */
 
