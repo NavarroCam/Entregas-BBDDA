@@ -191,3 +191,103 @@ GO
 -- ==============  REPORTE 6  =======================
 /* Muestre las fechas de pagos de expensas ordinarias de cada UF y la cantidad de días que
 pasan entre un pago y el siguiente, para el conjunto examinado.*/ 
+
+
+
+
+
+
+
+-- ==============  API  =======================
+/*
+La API actúa como un eco: recibe los datos de un determinado consorcio 
+y devuelve la misma información junto con un ID de transacción (generalmente 101) 
+para confirmar que el envío y recepcion de datos fue exitoso 
+y que el formato JSON es correcto
+*/
+
+EXEC sp_configure 'show advanced options', 1;	--Permite editar los permisos avanzados.
+RECONFIGURE;
+GO
+EXEC sp_configure 'Ole Automation Procedures', 1;	-- Aqui habilitamos esta opcion avanzada
+RECONFIGURE;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM sys.objects
+    WHERE object_id = OBJECT_ID(N'cspr.sp_FichaInformacionConsorcio_06') AND type = 'P'
+)
+BEGIN
+    EXEC('CREATE PROCEDURE cspr.sp_FichaInformacionConsorcio_06 AS BEGIN SET NOCOUNT ON; END')
+END
+GO
+
+CREATE OR ALTER PROCEDURE cspr.sp_FichaInformacionConsorcio_06
+    @NombreConsorcio VARCHAR(30)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @url NVARCHAR(64) = 'https://jsonplaceholder.typicode.com/posts';
+    DECLARE @Object INT;
+    DECLARE @respuesta NVARCHAR(MAX);
+    DECLARE @json TABLE(DATA NVARCHAR(MAX));
+    DECLARE @body NVARCHAR(MAX);
+
+    DECLARE @DireccionConsorcio NVARCHAR(100);
+    DECLARE @CantUF INT;
+    DECLARE @SuperficieTotal DECIMAL(20, 2);
+
+    SELECT TOP 1 
+        @DireccionConsorcio = C.Direccion,
+        @CantUF = C.CantUF, 
+        @SuperficieTotal = C.SuperficieTotal
+    FROM ct.Consorcio C
+    WHERE C.Nombre = @NombreConsorcio;
+
+    SET @DireccionConsorcio = ISNULL(@DireccionConsorcio, 'Direccion no encontrada');
+    SET @CantUF = ISNULL(@CantUF, 0);
+    SET @SuperficieTotal = ISNULL(@SuperficieTotal, 0.00);
+
+    SET @body =
+    '{
+	  "title":"' + @NombreConsorcio + '",
+	  "body":"Direccion: ' + @DireccionConsorcio + '",
+	  "CantUF": ' + CAST(@CantUF AS NVARCHAR(10)) + ', 
+      "SuperficieTotal": ' + CAST(@SuperficieTotal AS NVARCHAR(20)) + '
+    }';
+
+    EXEC sp_OACreate 'MSXML2.XMLHTTP', @Object OUT;
+    EXEC sp_OAMethod @Object, 'OPEN', NULL, 'POST', @url, 'FALSE';
+    EXEC sp_OAMethod @Object, 'setRequestHeader', NULL, 'Content-Type', 'application/json';
+    EXEC sp_OAMethod @Object, 'SEND', NULL, @body;
+    EXEC sp_OAMethod @Object, 'RESPONSETEXT', @respuesta OUTPUT;
+
+    INSERT INTO @json EXEC sp_OAGetProperty @Object, 'RESPONSETEXT'
+
+    SET @respuesta = (SELECT TOP 1 DATA FROM @json);
+
+    DECLARE @datos NVARCHAR(MAX) = (SELECT DATA FROM @json)
+
+    SELECT 
+        [Titulo Enviado] = J.[NombreConsorcio],
+        [Mensaje Enviado (Detalle)] = J.[Direccion],
+        [Cantidad UF Confirmada] = J.[CantUF], 
+        [Superficie Total Confirmada] = J.[SuperficieTotal], 
+        [ID de Transaccion API] = J.[Id]
+    FROM OPENJSON(@datos)
+    WITH
+    (
+        [NombreConsorcio] NVARCHAR(256) '$.title',
+        [Direccion] NVARCHAR(256) '$.body',
+        [CantUF] int '$.CantUF',
+        [SuperficieTotal] DECIMAL(10, 2) '$.SuperficieTotal',
+        [Id] int '$.id'
+    ) AS J;
+
+    SELECT @respuesta AS [Respuesta_JSON_de_la_API];
+
+    EXEC sp_OADestroy @Object;
+
+END
+GO

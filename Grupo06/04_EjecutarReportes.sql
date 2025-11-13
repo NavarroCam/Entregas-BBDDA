@@ -61,8 +61,18 @@ EXEC cspr.SP_Reporte_Top3Morosos_04
     @FechaDesde = '2025-03-01', 
     @FechaHasta = '2025-06-30', 
     @TipoPersona = 0;
+GO
 
 
 -- REPORTE 6
 /* Muestre las fechas de pagos de expensas ordinarias de cada UF y la cantidad de días que
 pasan entre un pago y el siguiente, para el conjunto examinado.*/
+
+
+
+--API
+
+EXEC cspr.sp_FichaInformacionConsorcio_06 @NombreConsorcio = 'Alberdi'; 
+GO
+EXEC cspr.sp_FichaInformacionConsorcio_06 @NombreConsorcio = 'Azcuenaga'; 
+GO
