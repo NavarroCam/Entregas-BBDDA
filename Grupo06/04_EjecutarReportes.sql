@@ -41,6 +41,9 @@ GO
 /* Presente el total de recaudacion por mes y departamento en formato de tabla cruzada. */
 
 
+EXEC cspr.sp_RecaudacionPorMesYDepartamento 'Azcuenaga',2025,4
+
+
 -- REPORTE 3
 /* Presente un cuadro cruzado con la recaudacion total desagregada segun su procedencia
 (ordinario, extraordinario, etc.) segun el periodo. */
