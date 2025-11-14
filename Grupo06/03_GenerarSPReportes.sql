@@ -355,7 +355,7 @@ BEGIN
 END
 GO
 
-CREATE or ALTER PROCEDURE cspr.sp_MesesMayorGastoIngreso_03
+CREATE OR ALTER PROCEDURE cspr.sp_MesesMayorGastoIngreso_03
 	@fechaDesde DATE,
 	@fechaHasta DATE,
 	@nombreconsorcio VARCHAR(30)
@@ -453,9 +453,57 @@ GO
 /* Muestre las fechas de pagos de expensas ordinarias de cada UF y la cantidad de dias que
 pasan entre un pago y el siguiente, para el conjunto examinado.*/ 
 
+IF NOT EXISTS (
+    SELECT * FROM sys.objects 
+    WHERE object_id = OBJECT_ID(N'cspr.SP_Reporte_SecuenciaPagosXML_05') AND type = 'P'
+)
+BEGIN
+    EXEC('CREATE PROCEDURE cspr.SP_Reporte_SecuenciaPagosXML_05 AS BEGIN SET NOCOUNT ON; END')
+END
+GO
 
+CREATE OR ALTER PROCEDURE cspr.SP_Reporte_SecuenciaPagosXML_05 (
+    @FechaDesde DATE,
+    @FechaHasta DATE,
+    @NombreConsorcio VARCHAR(30)
+)
+AS
+BEGIN
+    -- Validaciones
+    IF @FechaDesde IS NULL OR @FechaHasta IS NULL
+    BEGIN
+        RAISERROR('Debe especificar un rango de fechas válido (@FechaDesde y @FechaHasta).', 16, 1)
+        RETURN
+    END
 
+    IF @FechaDesde > @FechaHasta
+    BEGIN
+        RAISERROR('La fecha inicial (@FechaDesde) no puede ser posterior a la fecha final (@FechaHasta).', 16, 1)
+        RETURN
+    END
 
+    IF @NombreConsorcio IS NULL OR LTRIM(RTRIM(@NombreConsorcio)) = ''
+    BEGIN
+        RAISERROR('Debe especificar un NombreConsorcio válido para este reporte.', 16, 1)
+        RETURN
+    END
+
+    IF NOT EXISTS (SELECT 1 FROM CT.Consorcio WHERE Nombre = @NombreConsorcio)
+    BEGIN
+        RAISERROR('Error: El consorcio especificado no se encuentra registrado en la tabla CT.Consorcio.', 16, 1)
+        RETURN;
+    END;
+
+    SELECT E.ID_UF, E.NombreConsorcio, P.Fecha_Pago,
+           LAG(P.Fecha_Pago, 1, NULL) OVER (PARTITION BY E.ID_UF ORDER BY P.Fecha_Pago) AS FechaPagoAnterior,
+           DATEDIFF(day, LAG(P.Fecha_Pago, 1, NULL) OVER (PARTITION BY E.ID_UF ORDER BY P.Fecha_Pago), P.Fecha_Pago) AS DiasEntrePagos
+    FROM ct.Pago P
+    INNER JOIN ct.Expensa E ON P.ID_Expensa = E.ID_Expensa
+    WHERE P.Fecha_Pago BETWEEN @FechaDesde AND @FechaHasta AND E.NombreConsorcio = @NombreConsorcio
+    ORDER BY E.ID_UF, P.Fecha_Pago
+    FOR XML AUTO, ROOT('InformeSecuenciaPagos')
+END
+GO
 
 
 

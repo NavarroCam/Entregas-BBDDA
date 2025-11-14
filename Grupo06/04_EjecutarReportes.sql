@@ -79,7 +79,10 @@ GO
 /* Muestre las fechas de pagos de expensas ordinarias de cada UF y la cantidad de dias que
 pasan entre un pago y el siguiente, para el conjunto examinado.*/
 
-
+EXEC cspr.SP_Reporte_SecuenciaPagosXML_05
+    @FechaDesde = '2025-04-01', 
+    @FechaHasta = '2025-04-30', 
+    @NombreConsorcio = 'Azcuenaga';
 
 
 -- API

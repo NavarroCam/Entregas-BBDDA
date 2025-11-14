@@ -55,6 +55,15 @@ END
 GO
 
 
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Expensa_UF_ID' AND object_id = OBJECT_ID('ct.Expensa'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Expensa_UF_ID
+    ON ct.Expensa (ID_UF, ID_Expensa); -- Clave: ID_UF (Filtro) | Include: ID_Expensa (JOIN)
+END
+GO
+
+
+
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_EstadoDeCuenta_ID' AND object_id = OBJECT_ID('ct.EstadoDeCuenta'))
 BEGIN
     CREATE NONCLUSTERED INDEX IX_EstadoDeCuenta_ID

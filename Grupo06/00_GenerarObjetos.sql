@@ -75,7 +75,7 @@ IF NOT EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name='Com5600G06')
 BEGIN
 CREATE DATABASE Com5600G06
 END
-go
+GO
 
 ALTER DATABASE Com5600G06 SET MULTI_USER WITH ROLLBACK IMMEDIATE; --- PARA USAR EN VARIAS QUERYS A LA VEZ
 
@@ -158,8 +158,8 @@ TABLE_SCHEMA = 'ct' AND TABLE_NAME = 'Persona')
 BEGIN
 
 CREATE TABLE ct.Persona (
-  CVU_CBU varchar(22),
-  Tipo bit,
+  CVU_CBU VARCHAR(22),
+  Tipo BIT,
   DNI_Persona INT,
   Apellido VARCHAR(30) NOT NULL,
   Nombres VARCHAR(30) NOT NULL,
@@ -522,7 +522,7 @@ BEGIN
 END
 GO
 
-CREATE or ALTER PROCEDURE csp.sp_ImportarPersonas_03
+CREATE OR ALTER PROCEDURE csp.sp_ImportarPersonas_03
 @RutaArchivo NVARCHAR(260)
 AS
 BEGIN
@@ -549,7 +549,7 @@ BEGIN
 		);';
 	EXEC(@Sql);
 
-	-- insertamos personas
+	-- Insertamos personas
 	INSERT INTO ct.Persona(Nombres,apellido,DNI_Persona,CorreoElectronico,telefono,CVU_CBU, Tipo)
     SELECT 	LTRIM(sub.Nombre),LTRIM(sub.Apellido),sub.DNI,LTRIM(sub.Email_Personal),LTRIM(sub.telefono_De_Contacto),sub.CVU_CBU, 
 	sub.boleano AS Tipo            
@@ -679,7 +679,7 @@ END
 GO
 
 CREATE OR ALTER PROCEDURE csp.sp_ImportarServicios_06
-@RutaArchivo NVARCHAR(260),@numero_mes int
+@RutaArchivo NVARCHAR(260),@numero_mes INT
 AS
 BEGIN
 	
@@ -744,49 +744,49 @@ BEGIN
 	INSERT INTO ct.EstadoFinanciero (NombreConsorcio,EgresoGastoMensual,Fecha)
 	SELECT NOMBRE_CONSORCIO,BANCARIOS+LIMPIEZA+ADMINISTRACION+SEGUROS+GASTOS_GENERALES+SERVICIOS_PUBLICOS_Agua+SERVICIOS_PUBLICOS_Luz,FECHA
 	FROM #temp T
-	WHERE NOMBRE_CONSORCIO IS NOT NULL and month (T.FECHA)=@numero_mes;
+	WHERE NOMBRE_CONSORCIO IS NOT NULL AND MONTH (T.FECHA)=@numero_mes;
 
 	INSERT INTO ct.Expensa(NombreConsorcio,FechaEmision,PrimerFechaVencimiento,SegundaFechaVencimiento,ID_UF,TotalAPagar) 
 	SELECT T.NOMBRE_CONSORCIO,T.FECHA, DATEADD(DAY,10, T.FECHA), DATEADD(DAY,15, T.FECHA),U.ID_UF,
 	((t.ADMINISTRACION+t.BANCARIOS+t.GASTOS_GENERALES+t.LIMPIEZA+t.SEGUROS+t.SERVICIOS_PUBLICOS_Agua+t.SERVICIOS_PUBLICOS_Luz)*0.01*U.PorcentajeProrrateo)
 	FROM #temp T
 	INNER JOIN ct.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
-	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL and month (T.FECHA)=@numero_mes;
+	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL AND MONTH (T.FECHA)=@numero_mes;
 
 	INSERT INTO ct.GastoGeneral(Importe,ID_Expensa) 
 	SELECT T.GASTOS_GENERALES*0.01*U.PorcentajeProrrateo,
 	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
 	FROM #temp T
 	INNER JOIN ct.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
-	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL and month (T.FECHA)=@numero_mes;
+	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL AND MONTH (T.FECHA)=@numero_mes;
 
 	INSERT INTO ct.GastoAdministracion(Importe,ID_Expensa) 
 	SELECT T.ADMINISTRACION*0.01*U.PorcentajeProrrateo,
 	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
 	FROM #temp T
 	INNER JOIN ct.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
-	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL and month (T.FECHA)=@numero_mes;
+	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL AND MONTH (T.FECHA)=@numero_mes;
 
 	INSERT INTO ct.Seguro (Importe,ID_Expensa)
 	SELECT T.SEGUROS*0.01*U.PorcentajeProrrateo,
 	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
 	FROM #temp T
 	INNER JOIN ct.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
-	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL and month (T.FECHA)=@numero_mes;
+	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL and MONTH (T.FECHA)=@numero_mes;
 
 	INSERT INTO ct.MantenimientoCtaBancaria (Importe,id_expensa)
 	SELECT T.BANCARIOS*0.01*U.PorcentajeProrrateo,
 	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
 	FROM #temp T
 	INNER JOIN ct.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
-	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL and month (T.FECHA)=@numero_mes;
+	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL AND MONTH (T.FECHA)=@numero_mes;
 
 	INSERT INTO ct.ServicioPublico (ImporteAgua,ImporteLuz,ID_Expensa)
 	SELECT T.SERVICIOS_PUBLICOS_Agua*0.01*U.PorcentajeProrrateo,T.SERVICIOS_PUBLICOS_Luz*0.01*U.PorcentajeProrrateo,
 	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
 	FROM #temp T
 	INNER JOIN ct.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
-	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL and month (T.FECHA)=@numero_mes;
+	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL AND MONTH (T.FECHA)=@numero_mes;
 
 	
 	INSERT INTO ct.Limpieza(Importe,ID_Expensa)
@@ -794,7 +794,7 @@ BEGIN
 	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
 	FROM #temp T
 	INNER JOIN ct.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
-	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL and month (T.FECHA)=@numero_mes;
+	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL AND MONTH (T.FECHA)=@numero_mes;
 
 	DROP TABLE #temp
 END;
@@ -945,8 +945,8 @@ BEGIN
 		0,--InteresPorMora2V
 		-PagoRecibido --Deuda
 		FROM ct.EXPENSA EX
-		inner join PagosCalculados pa on pa.ID_UF=ex.ID_UF and pa.NombreConsorcio=ex.NombreConsorcio
-		inner join ct.UnidadFuncional u on u.ID_UF=ex.ID_UF and u.NombreConsorcio=ex.NombreConsorcio  
+		INNER JOIN PagosCalculados pa ON pa.ID_UF=ex.ID_UF and pa.NombreConsorcio=ex.NombreConsorcio
+		INNER JOIN ct.UnidadFuncional u ON u.ID_UF=ex.ID_UF and u.NombreConsorcio=ex.NombreConsorcio  
 		WHERE ex.NombreConsorcio=@NOMBRE_CONSORCIO AND MONTH (EX.FechaEmision)=@numero_mes
 	END
 	ELSE 
@@ -975,8 +975,8 @@ BEGIN
 		(saldo_anterior-PagoRecibido)*1.05,--InteresPorMora2V
 		saldo_anterior-PagoRecibido --Deuda
 		FROM ct.EXPENSA EX
-		inner join PagosCalculados pa on pa.ID_UF=ex.ID_UF and pa.NombreConsorcio=ex.NombreConsorcio
-		inner join ct.UnidadFuncional u on u.ID_UF=ex.ID_UF and u.NombreConsorcio=ex.NombreConsorcio
+		INNER JOIN PagosCalculados pa ON pa.ID_UF=ex.ID_UF AND pa.NombreConsorcio=ex.NombreConsorcio
+		INNER JOIN ct.UnidadFuncional u ON u.ID_UF=ex.ID_UF AND u.NombreConsorcio=ex.NombreConsorcio
 		WHERE ex.NombreConsorcio=@NOMBRE_CONSORCIO AND MONTH (EX.FechaEmision)=@numero_mes
 	END
 END; 
@@ -1000,7 +1000,7 @@ BEGIN
 	CREATE TABLE #TEMP_ESTADO_CUENTA(
 	ID_ESTADO_DE_CUENTA INT,
 	Fecha SMALLDATETIME,
-	SaldoAnterior DECIMAL(20,2) null,
+	SaldoAnterior DECIMAL(20,2) NULL,
 	PagoRecibido DECIMAL(20,2) NOT NULL CHECK(PagoRecibido >= 0),
 	InteresPorMora1V DECIMAL (20,2) NOT NULL DEFAULT 0,
 	InteresPorMora2V DECIMAL (20,2) NOT NULL DEFAULT 0, 
