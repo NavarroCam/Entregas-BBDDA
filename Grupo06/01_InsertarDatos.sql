@@ -48,11 +48,8 @@ NOMBRE, APELLIDO,  DNI Y NICK DE LOS INTEGRANTES:
 • Franchetti Luciana-42775831-LuFranchetti 
 • Jaureguiberry Facundo Agustin-42056476-JaureFacu 
 • Gambaro Lartigue Guadalupe-45206331-GuadaGambaro
-*/
 
 
-
-/*
 ACLARACION IMPORTANTE SOBRE UBICACION DE LOS ARCHIVOS PROVISTOS:
 
 • SI A LA CARPETA DONDE SE ENCUENTRA EL PROYECTO ("Grupo06") SE LA NOMBRA "TP_Base_de_datos_aplicada"
@@ -80,7 +77,6 @@ EXEC csp.sp_ImportarConsorcio_01 'C:\TP_Base_de_datos_aplicada\Grupo06\consorcio
 EXEC  csp.sp_ImportarUnidadFuncional_02 'C:\TP_Base_de_datos_aplicada\Grupo06\consorcios\UF por consorcio.TXT' 
 
 
-
 -- 4) Importar datos propietarios e inquilinos
 
 EXEC csp.sp_ImportarPersonas_03 'C:\TP_Base_de_datos_aplicada\Grupo06\consorcios\Inquilino-propietarios-datos.csv'
@@ -99,6 +95,7 @@ EXEC csp.sp_ImportarPagos_05 'C:\TP_Base_de_datos_aplicada\Grupo06\consorcios\pa
 --- 7) IMPORTAR FORMATO JSON EL PRIMER MES ESPECIFICAR EL MES EN EL STORE PROCEDURE EJEMPLO 1 = ENERO EN ESTE CASO INSERTAMOS EL MES 4
 
 EXEC csp.sp_ImportarServicios_06 'C:\TP_Base_de_datos_aplicada\Grupo06\consorcios\Servicios.Servicios.json',4;
+
 
 -- 8) Cargar Gastos Extraordinarios manualmente
 
@@ -119,6 +116,7 @@ EXEC csp.SP_SumarCocheraBauleraAImporteTotalExpensas_08 4,1000,1000,'Unzue';
 
 EXEC csp.SP_RellenarPagoConIdExpensa_09
 
+
 -- 11) SP PARA RELLENAR ESTADO FINANCIERO CON LOS PAGOS INGRESADOS 
 
 EXEC csp.SP_RellenarEstadoFinancieroIngresos_12 4
@@ -127,16 +125,17 @@ EXEC csp.SP_RellenarEstadoFinancieroIngresos_12 4
 -- 12) SP CARGAR TABLA ESTADO DE CUENTA INDICAR NUMERO DE MES COSTE DE M2 POR BAULERA, COCHERA Y DECIR SI ES LA PRIMERA VEZ QUE SE CARGA LA TABLA CON 1 = VERDADERO,
 --		POR ULTIMO INDICAR EL NOMBRE DEL CONSORCIO DEBIDO A QUE NO TODOS LOS CONSORCIOS TIENEN LO MISMO EN M2 DE COCHERAS Y BAULERAS
 
-
 EXEC csp.SP_GenerarEstadoDeCuentA_10 4,1000,1000,1,'Alberdi'
 EXEC csp.SP_GenerarEstadoDeCuentA_10 4,1000,1000,1,'Alzaga'
 EXEC csp.SP_GenerarEstadoDeCuentA_10 4,1000,1000,1,'Azcuenaga'
 EXEC csp.SP_GenerarEstadoDeCuentA_10 4,1000,1000,1,'Pereyra Iraola'
 EXEC csp.SP_GenerarEstadoDeCuentA_10 4,1000,1000,1,'Unzue'
 
+
 -- 13) HAY QUE SUMAR LA DEUDA DE LA ANTERIOIR EXPENSA A LAS EXPENSAS DE ABRIL TOTAL A PAGAR
 
 EXEC csp.sp_SumarDeudaExpensasTotalAPagar_11 1,135
+
 
 -- 14) IMPORTAR FORMATO JSON EL SEGUNDO MES
 
@@ -156,6 +155,7 @@ EXEC csp.SP_SumarCocheraBauleraAImporteTotalExpensas_08 5,1200,1200,'Unzue';
 
 EXEC csp.SP_RellenarPagoConIdExpensa_09
 
+
 -- 17) SP PARA RELLENAR ESTADO FINANCIERO CON LOS PAGOS INGRESADOS 
 
 EXEC csp.SP_RellenarEstadoFinancieroIngresos_12 5
@@ -174,9 +174,11 @@ EXEC csp.SP_GenerarEstadoDeCuentA_10 5,1000,1000,0,'Unzue'
 
 EXEC csp.sp_SumarDeudaExpensasTotalAPagar_11 136,270
 
+
 -- 20) IMPORTAR FORMATO JSON EL TERCER MES
 
 EXEC csp.sp_ImportarServicios_06 'C:\TP_Base_de_datos_aplicada\Grupo06\consorcios\Servicios.Servicios.json',6;
+
 
 -- 21) SP CARGAR AL IMPORTE TOTAL EL COSTO DE LAS BAULERAS Y COCHERAS SEGUNDO MES
 
@@ -186,17 +188,21 @@ EXEC csp.SP_SumarCocheraBauleraAImporteTotalExpensas_08 6,1200,1200,'Azcuenaga';
 EXEC csp.SP_SumarCocheraBauleraAImporteTotalExpensas_08 6,1200,1200,'Pereyra Iraola';
 EXEC csp.SP_SumarCocheraBauleraAImporteTotalExpensas_08 6,1200,1200,'Unzue';
 
+
 -- 22) SP PARA AGREGAR EL ID EXPENSA EN LA TABLA PAGOS hacerlo cada vez que se importa un nuevo mes de la importacion de servicios
 
 EXEC csp.SP_RellenarPagoConIdExpensa_09
+
 
 -- 23) SP PARA RELLENAR ESTADO FINANCIERO CON LOS PAGOS INGRESADOS 
 
 EXEC csp.SP_RellenarEstadoFinancieroIngresos_12 6
 
+
 -- 24) HAY QUE SUMAR LA DEUDA DE LA ANTERIOIR EXPENSA A LAS EXPENSAS DE MAYO TOTAL A PAGAR
 
 EXEC csp.sp_SumarDeudaExpensasTotalAPagar_11 271,405
+
 
 -- 25) SP CARGAR TABLA ESTADO DE CUENTA
 
@@ -205,6 +211,7 @@ EXEC csp.SP_GenerarEstadoDeCuentA_10 6,1000,1000,0,'Alzaga'
 EXEC csp.SP_GenerarEstadoDeCuentA_10 6,1000,1000,0,'Azcuenaga'
 EXEC csp.SP_GenerarEstadoDeCuentA_10 6,1000,1000,0,'Pereyra Iraola'
 EXEC csp.SP_GenerarEstadoDeCuentA_10 6,1000,1000,0,'Unzue'
+
 
 -- 26) Agregar nombre de empresa a Limpieza y Seguro
 

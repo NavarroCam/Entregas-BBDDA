@@ -38,7 +38,7 @@ Esquemas:
 
  
 USE Com5600G06
-go
+GO
 
 -- ==============  CREACION ESQUEMA SP GENERAR REPORTES  =======================
 
@@ -48,7 +48,9 @@ BEGIN
 END 
 GO
 
+
 -- ==============  REPORTE 1  =======================
+
 /* Se desea analizar el flujo de caja en forma semanal. Debe presentar la recaudacion por
 pagos ordinarios y extraordinarios de cada semana, el promedio en el periodo, y el
 acumulado progresivo. */
@@ -114,6 +116,15 @@ GO
 
 -- ==============  REPORTE 2  =======================
 /* Presente el total de recaudacion por mes y departamento en formato de tabla cruzada. */
+
+IF NOT EXISTS (
+    SELECT * FROM sys.objects 
+    WHERE object_id = OBJECT_ID(N'cspr.sp_RecaudacionPorMesYDepartamento_01') AND type = 'P'
+)
+BEGIN
+    EXEC('CREATE PROCEDURE cspr.sp_RecaudacionPorMesYDepartamento_01 AS BEGIN SET NOCOUNT ON; END')
+END
+GO
 
 CREATE OR ALTER PROCEDURE cspr.sp_RecaudacionPorMesYDepartamento_01
     @NombreConsorcio VARCHAR(30),
@@ -202,7 +213,6 @@ BEGIN
         FOR Departamento IN (' + @ColumnasPivot + ')
     ) AS PivotTable;
     ';
-
     -- === EJECUTAR ===
     EXEC sp_executesql 
         @SQL,
@@ -210,6 +220,9 @@ BEGIN
         @NombreConsorcio, @Año, @Mes;
 
 END;
+GO
+
+
 
 -- ==============  REPORTE 3  =======================
 
@@ -313,7 +326,6 @@ BEGIN
                 WHEN @TipoPeriodo = 'TRIMESTRAL' THEN YEAR(R.Fecha_Pago) * 10 + DATEPART(QUARTER, R.Fecha_Pago)
                 ELSE YEAR(R.Fecha_Pago) * 100 + MONTH(R.Fecha_Pago)
             END AS OrdenPeriodo,
-
             R.Procedencia,
             SUM(R.Importe) AS TotalRecaudado,
             R.NombreConsorcio,
@@ -340,22 +352,14 @@ BEGIN
     )
 
     -- PIVOT
-    SELECT 
-        Periodo,
+    SELECT Periodo,
         ISNULL([ORDINARIO], 0) AS Ordinario,
         ISNULL([EXTRAORDINARIO], 0) AS Extraordinario,
         ISNULL([OTROS], 0) AS Otros,
         ISNULL([ORDINARIO], 0) + ISNULL([EXTRAORDINARIO], 0) + ISNULL([OTROS], 0) AS TotalPeriodo,
-        NombreConsorcio,
-        ID_Administracion
+        NombreConsorcio, ID_Administracion
     FROM (
-        SELECT 
-            Periodo,
-            OrdenPeriodo,
-            Procedencia,
-            TotalRecaudado,
-            NombreConsorcio,
-            ID_Administracion
+        SELECT Periodo, OrdenPeriodo, Procedencia, TotalRecaudado, NombreConsorcio, ID_Administracion
         FROM Periodos
     ) AS SourceTable
     PIVOT (
@@ -374,37 +378,33 @@ GO
 
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
-    WHERE object_id = OBJECT_ID(N'cspr.sp_mesesmayorgastoingreso_03') AND type = 'P'
+    WHERE object_id = OBJECT_ID(N'cspr.sp_MesesMayorGastoIngreso_03') AND type = 'P'
 )
 BEGIN
-    EXEC('CREATE PROCEDURE cspr.sp_mesesmayorgastoingreso_03 AS BEGIN SET NOCOUNT ON; END')
+    EXEC('CREATE PROCEDURE cspr.sp_MesesMayorGastoIngreso_03 AS BEGIN SET NOCOUNT ON; END')
 END
 GO
 
-CREATE or ALTER PROCEDURE cspr.sp_mesesmayorgastoingreso_03
+CREATE or ALTER PROCEDURE cspr.sp_MesesMayorGastoIngreso_03
 	@fechaDesde DATE,
 	@fechaHasta DATE,
 	@nombreconsorcio VARCHAR(30)
-
 AS
 BEGIN	
 	SET NOCOUNT ON;
 
 --VERIFICAR QUE EL CONSORCIO EXISTA
-
 IF NOT EXISTS (SELECT 1 FROM CT.Consorcio WHERE Nombre= @nombreconsorcio)
 BEGIN
 	SELECT 'Error: El consorcio no se encuentra regristrado' AS Resultado;
 	RETURN;
 END;
 
-
-
 --CTE PARA OBTENER LOS 5 MESES DE MAYORES GASTOS
 WITH topGastos AS (
 		SELECT TOP 5
 		FORMAT (E.Fecha, 'yyyy-MM') AS Periodo,
-		E.EgresoGastoMensual as Importe,
+		E.EgresoGastoMensual AS Importe,
 		'GASTO' AS Tipo
 		FROM ct.EstadoFinanciero E
 		WHERE E.NombreConsorcio	= @nombreconsorcio
@@ -419,25 +419,17 @@ WITH topGastos AS (
 	FORMAT (E.FECHA, 'yyyy-MM') AS Periodo, 
 	E.IngresoPagoMensual AS Importe,
 	'INGRESO' AS Tipo
-	from ct.EstadoFinanciero E
+	FROM ct.EstadoFinanciero E
 	WHERE E.NombreConsorcio = @nombreconsorcio
 	AND E.Fecha >= @fechaDesde
 	AND E.Fecha <= @fechaHasta
 	ORDER BY E.IngresoPagoMensual DESC
 	)
 
-SELECT 
-	Periodo,
-	Importe,
-	Tipo,
-	@nombreconsorcio AS NombreConsorcio
+SELECT Periodo, Importe, Tipo, @nombreconsorcio AS NombreConsorcio
 FROM topgastos
 UNION ALL
-SELECT 
-	Periodo,
-	Importe,
-	Tipo,
-	@nombreconsorcio AS NombreConsorcio
+SELECT Periodo, Importe, Tipo, @nombreconsorcio AS NombreConsorcio
 FROM TOPINGRESOS
 ORDER BY Importe DESC
 FOR XML AUTO, ELEMENTS;
@@ -460,7 +452,6 @@ BEGIN
     EXEC('CREATE PROCEDURE cspr.SP_Reporte_Top3Morosos_04 AS BEGIN SET NOCOUNT ON; END')
 END
 GO
-
 
 CREATE OR ALTER PROCEDURE cspr.SP_Reporte_Top3Morosos_04(
     @FechaDesde DATE,
@@ -489,7 +480,6 @@ BEGIN
     ORDER BY MorosidadTotal DESC;
 END
 GO
-
 
 
 -- ==============  REPORTE 6  =======================

@@ -39,6 +39,7 @@ BEGIN
 END
 GO
 
+
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Expensa_FechaEmision' AND object_id = OBJECT_ID('ct.Expensa'))
 BEGIN
     CREATE NONCLUSTERED INDEX IX_Expensa_FechaEmision
@@ -70,12 +71,14 @@ BEGIN
 END
 GO
 
+
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_UF_Persona' AND object_id = OBJECT_ID('ct.UnidadFuncional'))
 BEGIN
     CREATE NONCLUSTERED INDEX IX_UF_Persona
     ON ct.UnidadFuncional (CVU_CBU, Tipo);
 END
 GO
+
 
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Persona_CVU_Tipo' AND object_id = OBJECT_ID('ct.Persona'))
 BEGIN
@@ -84,12 +87,14 @@ BEGIN
 END
 GO
 
+
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Persona_Tipo' AND object_id = OBJECT_ID('ct.Persona'))
 BEGIN
     CREATE NONCLUSTERED INDEX IX_Persona_Tipo
     ON ct.Persona (Tipo);
 END
 GO
+
 
 IF NOT EXISTS (
     SELECT 1 FROM sys.indexes 
@@ -101,6 +106,7 @@ BEGIN
     INCLUDE (Importe, CVU_CBU);
 END
 GO
+
 
 IF NOT EXISTS (
     SELECT 1 FROM sys.indexes 

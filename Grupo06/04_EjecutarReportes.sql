@@ -21,7 +21,6 @@ Esquemas:
 
 */
 
-
 USE Com5600G06
 
 -- REPORTE 1
@@ -36,12 +35,12 @@ EXEC cspr.sp_AnalizarFlujoCajaSemanal_00
 GO
 
 
-
 -- REPORTE 2
 /* Presente el total de recaudacion por mes y departamento en formato de tabla cruzada. */
 
 
 EXEC cspr.sp_RecaudacionPorMesYDepartamento_01  @NombreConsorcio ='Azcuenaga',@AÑO=2025,@MES=4
+GO
 
 
 -- REPORTE 3
@@ -54,15 +53,15 @@ EXEC cspr.sp_RecaudacionDesagregadaPorProcedencia_02
     @TipoPeriodo = 'MENSUAL';
 GO
 
+
 -- REPORTE 4
 /* Obtenga los 5 (cinco) meses de mayores gastos y los 5 (cinco) de mayores ingresos. */
 
-EXEC cspr.sp_mesesmayorgastoingreso_03
+EXEC cspr.sp_MesesMayorGastoIngreso_03
 	@Fechadesde='2025-03-01',
 	@FechaHasta = '2025-06-30', 
 	@nombreconsorcio= 'Azcuenaga';
 GO
-
 
 
 -- REPORTE 5
@@ -80,6 +79,7 @@ GO
 -- REPORTE 6
 /* Muestre las fechas de pagos de expensas ordinarias de cada UF y la cantidad de dias que
 pasan entre un pago y el siguiente, para el conjunto examinado.*/
+
 
 
 
