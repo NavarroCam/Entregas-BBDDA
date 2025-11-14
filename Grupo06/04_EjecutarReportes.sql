@@ -41,7 +41,7 @@ GO
 /* Presente el total de recaudacion por mes y departamento en formato de tabla cruzada. */
 
 
-EXEC cspr.sp_RecaudacionPorMesYDepartamento 'Azcuenaga',2025,4
+EXEC cspr.sp_RecaudacionPorMesYDepartamento_01  @NombreConsorcio ='Azcuenaga',@AÑO=2025,@MES=4
 
 
 -- REPORTE 3

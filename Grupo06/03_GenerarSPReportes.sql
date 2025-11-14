@@ -115,7 +115,7 @@ GO
 -- ==============  REPORTE 2  =======================
 /* Presente el total de recaudacion por mes y departamento en formato de tabla cruzada. */
 
-CREATE OR ALTER PROCEDURE sp_RecaudacionPorMesYDepartamento_XML
+CREATE OR ALTER PROCEDURE cspr.sp_RecaudacionPorMesYDepartamento_01
     @NombreConsorcio VARCHAR(30),
     @Año INT,
     @Mes INT
@@ -124,6 +124,11 @@ BEGIN
     SET NOCOUNT ON;
 
     -- === VALIDACIONES ===
+    IF @NombreConsorcio IS NULL OR LTRIM(RTRIM(@NombreConsorcio)) = ''
+    BEGIN
+        RAISERROR('El parámetro @NombreConsorcio es obligatorio.', 16, 1);
+        RETURN;
+    END
 
     IF @Año IS NULL OR @Año < 1900 OR @Año > 2100
     BEGIN
@@ -137,20 +142,9 @@ BEGIN
         RETURN;
     END
 
-    -- === TABLA TEMPORAL PARA RESULTADO ===
-    IF OBJECT_ID('tempdb..#ResultadoPivot') IS NOT NULL 
-        DROP TABLE #ResultadoPivot;
-
-    CREATE TABLE #ResultadoPivot (
-        Mes VARCHAR(7),
-        -- Las columnas de departamentos se crearán dinámicamente
-        PRIMARY KEY (Mes)
-    );
-
-    -- === OBTENER DEPARTAMENTOS ===
+    -- === OBTENER DEPARTAMENTOS DEL CONSORCIO ===
     DECLARE @Columnas NVARCHAR(MAX) = '';
     DECLARE @ColumnasPivot NVARCHAR(MAX) = '';
-    DECLARE @SQL NVARCHAR(MAX) = '';
 
     SELECT 
         @Columnas = @Columnas + ', ISNULL([' + Depto + '], 0) AS [' + Depto + ']',
@@ -159,33 +153,24 @@ BEGIN
         SELECT DISTINCT CONCAT(Piso, Departamento) AS Depto
         FROM ct.UnidadFuncional
         WHERE NombreConsorcio = @NombreConsorcio
-          AND Piso IS NOT NULL AND Departamento IS NOT NULL
-    ) AS D
+          AND Piso IS NOT NULL
+          AND Departamento IS NOT NULL
+    ) AS Deptos
     ORDER BY Depto;
 
+    -- Si no hay departamentos
     IF @Columnas = ''
     BEGIN
-        SELECT '<Resultado><Error>No se encontraron departamentos para el consorcio especificado.</Error></Resultado>' AS XML_Resultado;
+        SELECT 'No se encontraron departamentos para el consorcio: ' + @NombreConsorcio AS Mensaje;
         RETURN;
     END
 
+    -- Limpiar comas iniciales
     SET @Columnas = STUFF(@Columnas, 1, 2, '');
     SET @ColumnasPivot = STUFF(@ColumnasPivot, 1, 2, '');
 
-    -- === ALTER TABLE DINÁMICO PARA AÑADIR COLUMNAS DE DEPARTAMENTOS ===
-    DECLARE @AlterSQL NVARCHAR(MAX) = '';
-    SELECT @AlterSQL = @AlterSQL + 
-           'ALTER TABLE #ResultadoPivot ADD [' + Depto + '] DECIMAL(20,4) NULL; '
-    FROM (
-        SELECT DISTINCT CONCAT(Piso, Departamento) AS Depto
-        FROM ct.UnidadFuncional
-        WHERE NombreConsorcio = @NombreConsorcio
-    ) AS D;
-
-    EXEC sp_executesql @AlterSQL;
-
-    -- === CONSTRUCCIÓN DEL PIVOT DINÁMICO ===
-    SET @SQL = '
+    -- === CONSULTA DINÁMICA ===
+    DECLARE @SQL NVARCHAR(MAX) = '
     WITH Datos AS (
         SELECT 
             CONCAT(u.Piso, u.Departamento) AS Departamento,
@@ -193,40 +178,37 @@ BEGIN
         FROM ct.Pago p
         INNER JOIN ct.Expensa e ON p.ID_Expensa = e.ID_Expensa
         INNER JOIN ct.UnidadFuncional u 
-            ON e.ID_UF = u.ID_UF AND e.NombreConsorcio = u.NombreConsorcio
+            ON e.ID_UF = u.ID_UF 
+           AND e.NombreConsorcio = u.NombreConsorcio
         WHERE e.NombreConsorcio = @NombreConsorcio
           AND YEAR(p.Fecha_Pago) = @Año
           AND MONTH(p.Fecha_Pago) = @Mes
           AND p.Importe > 0
     ),
     Agrupado AS (
-        SELECT Departamento, SUM(Importe) AS TotalRecaudado
+        SELECT 
+            Departamento,
+            SUM(Importe) AS TotalRecaudado
         FROM Datos
         GROUP BY Departamento
     )
-    INSERT INTO #ResultadoPivot (Mes, ' + REPLACE(@Columnas, 'ISNULL([', '[') + ')
     SELECT 
-        ''' + CAST(@Año AS VARCHAR(4)) + '-' + RIGHT('00' + CAST(@Mes AS VARCHAR(2)), 2) + ''',
+        ''' + CAST(@Año AS VARCHAR(4)) + '-' + 
+        RIGHT('00' + CAST(@Mes AS VARCHAR(2)), 2) + ''' AS Mes,
         ' + @Columnas + '
     FROM Agrupado
     PIVOT (
         SUM(TotalRecaudado)
         FOR Departamento IN (' + @ColumnasPivot + ')
-    ) AS PVT;
+    ) AS PivotTable;
     ';
 
-    -- === EJECUTAR PIVOT ===
+    -- === EJECUTAR ===
     EXEC sp_executesql 
         @SQL,
         N'@NombreConsorcio VARCHAR(30), @Año INT, @Mes INT',
         @NombreConsorcio, @Año, @Mes;
 
-    -- === DEVOLVER COMO XML CON FOR XML AUTO, ELEMENTS ===
-    SELECT * FROM #ResultadoPivot
-    FOR XML AUTO, ELEMENTS, ROOT('Recaudacion');
-
-    -- Limpiar
-    DROP TABLE #ResultadoPivot;
 END;
 
 -- ==============  REPORTE 3  =======================
@@ -457,7 +439,8 @@ SELECT
 	Tipo,
 	@nombreconsorcio AS NombreConsorcio
 FROM TOPINGRESOS
-ORDER BY Importe DESC;
+ORDER BY Importe DESC
+FOR XML AUTO, ELEMENTS;
 END
 GO
 
