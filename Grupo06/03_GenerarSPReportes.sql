@@ -1,18 +1,18 @@
-/* Entrega 6 � Reportes y API
-Cada reporte debe demostrarse con la ejecuci�n de una consulta, que deber� estar incluida
-en un store procedure. El SP admitir� par�metros (al menos tres) para filtrar los resultados,
+/* Entrega 6: Reportes y API
+Cada reporte debe demostrarse con la ejecucion de una consulta, que debera estar incluida
+en un store procedure. El SP admitira parametros (al menos tres) para filtrar los resultados,
 quedando a criterio del grupo determinar los mismos. Pueden combinar en un script la
-creaci�n de todos los reportes, luego en otro script har�an las invocaciones.
+creacion de todos los reportes, luego en otro script harian las invocaciones.
 
-Al menos dos de los reportes deber�n generarse en XML, que mostrar�n en SSMS. No es
+Al menos dos de los reportes deberan generarse en XML, que mostraran en SSMS. No es
 necesario que lo creen en el filesystem.
 
-Deber�n incorporar al menos una API como fuente de datos externa. Queda a criterio del
-grupo qu� API utilizar y para qu�. Algunas ideas: pueden usar la API que devuelve la
-cotizaci�n del d�lar para convertir valores (en ese caso podr�an guardar valores en d�lares
+Deberan incorporar al menos una API como fuente de datos externa. Queda a criterio del
+grupo que API utilizar y para que. Algunas ideas: pueden usar la API que devuelve la
+cotizacion del dolar para convertir valores (en ese caso podrian guardar valores en dolares
 y pesos); la API de feriados para no emitir comprobantes o generar vencimientos en
 domingos o feriados; una API para enviar notificaciones por whatsapp o email, o para
-generar PDFs en base a reportes, etc. No es necesario que codifiquen la API (tampoco est�
+generar PDFs en base a reportes, etc. No es necesario que codifiquen la API (tampoco esta
 prohibido). Deben consumir al menos UNA API para sumar una funcionalidad al sistema.
 Esto pueden realizarlo con T-SQL tal como se ve en la unidad 2.
 
@@ -29,25 +29,13 @@ Franchetti Luciana-42775831-LuFranchetti
 Jaureguiberry Facundo Agustin-42056476-JaureFacu 
 Gambaro Lartigue Guadalupe-45206331-GuadaGambaro
 
-Notaci�n y convenciones:
+Notacion y convenciones:
 Esquemas:
  - ct -> Creacion de tablas
- - csp -> Creacion de Store Procedures de Importaci�n
+ - csp -> Creacion de Store Procedures de Importacion
  - cspr -> Creacion de Store Procedures de Reportes
 */
 
-
--- Finalmente un ejemplo con una API falsa:
--- https://jsonplaceholder.typicode.com
--- Lo interesante de este ejemplo es como pasarle los parametros, 
--- los dos anteriores eran ejemplos de llamadas GET donde el parametro 
--- va en la url, pero no tiene porque ser asi.
- 
-/*
-Esta API rebota lo que vos le mandas. Lo que le pasas te lo devuelve.
-Para el TP si NO encontramos ninguna API que nos sirva para lo que queremos, podemos usar 
-la API falsa para fabricar algun dato y hacer de cuenta que lo devuelve una API. 
-*/
  
 USE Com5600G06
 go
@@ -61,9 +49,10 @@ END
 GO
 
 -- ==============  REPORTE 1  =======================
-/* Se desea analizar el flujo de caja en forma semanal. Debe presentar la recaudaci�n por
+/* Se desea analizar el flujo de caja en forma semanal. Debe presentar la recaudacion por
 pagos ordinarios y extraordinarios de cada semana, el promedio en el periodo, y el
 acumulado progresivo. */
+
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
     WHERE object_id = OBJECT_ID(N'cspr.sp_AnalizarFlujoCajaSemanal_00') AND type = 'P'
@@ -124,14 +113,24 @@ GO
 
 
 -- ==============  REPORTE 2  =======================
-/* Presente el total de recaudaci�n por mes y departamento en formato de tabla cruzada. */
+/* Presente el total de recaudacion por mes y departamento en formato de tabla cruzada. */
 
 
 
 -- ==============  REPORTE 3  =======================
 
-/* Presente un cuadro cruzado con la recaudaci�n total desagregada seg�n su procedencia
-(ordinario, extraordinario, etc.) seg�n el periodo. */
+/* Presente un cuadro cruzado con la recaudacion total desagregada segun su procedencia
+(ordinario, extraordinario, etc.) segun el periodo. */
+
+IF NOT EXISTS (
+    SELECT * FROM sys.objects 
+    WHERE object_id = OBJECT_ID(N'cspr.sp_RecaudacionDesagregadaPorProcedencia_02') AND type = 'P'
+)
+BEGIN
+    EXEC('CREATE PROCEDURE cspr.sp_RecaudacionDesagregadaPorProcedencia_02 AS BEGIN SET NOCOUNT ON; END')
+END
+GO
+
 CREATE OR ALTER PROCEDURE cspr.sp_RecaudacionDesagregadaPorProcedencia_02
     @FechaInicio DATE,
     @FechaFin DATE,
@@ -281,14 +280,14 @@ GO
 
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
-    WHERE object_id = OBJECT_ID(N'cspr.sp_mesesmayorgastoingreso_04') AND type = 'P'
+    WHERE object_id = OBJECT_ID(N'cspr.sp_mesesmayorgastoingreso_03') AND type = 'P'
 )
 BEGIN
-    EXEC('CREATE PROCEDURE cspr.sp_mesesmayorgastoingreso_04 AS BEGIN SET NOCOUNT ON; END')
+    EXEC('CREATE PROCEDURE cspr.sp_mesesmayorgastoingreso_03 AS BEGIN SET NOCOUNT ON; END')
 END
 GO
 
-create or alter procedure cspr.sp_mesesmayorgastoingreso_04
+CREATE or ALTER PROCEDURE cspr.sp_mesesmayorgastoingreso_03
 	@fechaDesde DATE,
 	@fechaHasta DATE,
 	@nombreconsorcio VARCHAR(30)
@@ -350,14 +349,13 @@ ORDER BY Importe DESC;
 END
 GO
 
---DROP PROCEDURE cspr.sp_mesesmayorgastoingreso_04;	
 
 
 -- ==============  REPORTE 5  =======================
 
-/* Obtenga los 3 (tres) propietarios con mayor morosidad. Presente informaci�n de contacto y
-DNI de los propietarios para que la administraci�n los pueda contactar o remitir el tr�mite al
-estudio jur�dico. */
+/* Obtenga los 3 (tres) propietarios con mayor morosidad. Presente informacion de contacto y
+DNI de los propietarios para que la administracion los pueda contactar o remitir el tramite al
+estudio juridico. */
 
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
@@ -400,7 +398,7 @@ GO
 
 
 -- ==============  REPORTE 6  =======================
-/* Muestre las fechas de pagos de expensas ordinarias de cada UF y la cantidad de d�as que
+/* Muestre las fechas de pagos de expensas ordinarias de cada UF y la cantidad de dias que
 pasan entre un pago y el siguiente, para el conjunto examinado.*/ 
 
 
@@ -411,9 +409,9 @@ pasan entre un pago y el siguiente, para el conjunto examinado.*/
 
 -- ==============  API  =======================
 /*
-La API act�a como un eco: recibe los datos de un determinado consorcio 
-y devuelve la misma informaci�n junto con un ID de transacci�n (generalmente 101) 
-para confirmar que el env�o y recepcion de datos fue exitoso 
+La API actua como un eco: recibe los datos de un determinado consorcio 
+y devuelve la misma informacion junto con un ID de transaccion (generalmente 101) 
+para confirmar que el envio y recepcion de datos fue exitoso 
 y que el formato JSON es correcto
 */
 

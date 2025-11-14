@@ -1,6 +1,6 @@
-/*  Entrega 6 � Reportes y API
-Genere �ndices para optimizar la ejecuci�n de las consultas de los reportes. Debe existir un
-script adicional con la generaci�n de �ndices.
+/*  Entrega 6: Reportes y API
+Genere Indices para optimizar la ejecucion de las consultas de los reportes. Debe existir un
+script adicional con la generacion de indices.
 
 FECHA DE ENTREGA: 14/11/2025
 NRO DE COMISION: 02-5600
@@ -8,17 +8,17 @@ NRO DE GRUPO: GRUPO 06
 NOMBRE DE LA MATERIA: BASE DE DATOS APLICADAS
 
 NOMBRE, APELLIDO,  DNI Y NICK DE LOS INTEGRANTES:
-� Juchani Javier Andres-36938637-jajuchani 
-� Maria Jose Mariscal-92869937-majomariscal 
-� Navarro Ojeda Camila Micaela-44689707-NavarroCam 
-� Franchetti Luciana-42775831-LuFranchetti 
-� Jaureguiberry Facundo Agustin-42056476-JaureFacu 
-� Gambaro Lartigue Guadalupe-45206331-GuadaGambaro
+Juchani Javier Andres-36938637-jajuchani 
+Maria Jose Mariscal-92869937-majomariscal 
+Navarro Ojeda Camila Micaela-44689707-NavarroCam 
+Franchetti Luciana-42775831-LuFranchetti 
+Jaureguiberry Facundo Agustin-42056476-JaureFacu 
+Gambaro Lartigue Guadalupe-45206331-GuadaGambaro
 
-Notaci�n y convenciones:
+Notacion y convenciones:
 Esquemas:
  - ct -> Creacion de tablas
- - csp -> Creacion de Store Procedures de Importaci�n
+ - csp -> Creacion de Store Procedures de Importacion
  - cspr -> Creacion de Store Procedures de Reportes
 */
 
