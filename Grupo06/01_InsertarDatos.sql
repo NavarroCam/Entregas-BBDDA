@@ -238,3 +238,17 @@ SELECT * FROM ct.Persona FOR XML AUTO, ELEMENTS;
 SELECT * FROM ct.Seguro FOR XML AUTO, ELEMENTS;
 SELECT * FROM ct.ServicioPublico FOR XML AUTO, ELEMENTS;
 SELECT * FROM ct.UnidadFuncional FOR XML AUTO, ELEMENTS;
+
+/*
+SELECT * FROM ct.Expensa
+SELECT * FROM ct.GastoAdministracion
+SELECT * FROM ct.GastoExtraordinario
+SELECT * FROM ct.GastoGeneral
+SELECT * FROM ct.Limpieza
+SELECT * FROM ct.MantenimientoCtaBancaria
+SELECT * FROM ct.Pago
+SELECT * FROM ct.Persona
+SELECT * FROM ct.Seguro
+SELECT * FROM ct.ServicioPublico
+SELECT * FROM ct.UnidadFuncional
+*/

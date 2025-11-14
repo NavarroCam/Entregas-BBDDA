@@ -49,6 +49,7 @@ END
 GO
 
 
+
 -- ==============  REPORTE 1  =======================
 
 /* Se desea analizar el flujo de caja en forma semanal. Debe presentar la recaudacion por
@@ -71,50 +72,36 @@ CREATE OR ALTER PROCEDURE cspr.sp_AnalizarFlujoCajaSemanal_00
 AS
 BEGIN
     SET NOCOUNT ON;
-    
     -- CTE 1: Filtra y Agrupa los pagos por semana y consorcio
     WITH PagosFiltrados AS (
-        SELECT
-            P.Fecha_Pago,
-            P.Importe
-        FROM
-            ct.Pago P
+        SELECT P.Fecha_Pago, P.Importe
+        FROM ct.Pago P
         INNER JOIN ct.Persona PE ON PE.CVU_CBU = P.CVU_CBU
         INNER JOIN ct.UnidadFuncional U ON U.CVU_CBU = PE.CVU_CBU
-        WHERE
-            U.NombreConsorcio = @NombreConsorcio
-            AND P.Fecha_Pago >= @FechaInicio
-            AND P.Fecha_Pago <= @FechaFin
+        WHERE U.NombreConsorcio = @NombreConsorcio AND P.Fecha_Pago >= @FechaInicio AND P.Fecha_Pago <= @FechaFin
     ),
     PagosSemanales AS (
         SELECT
             CAST(DATEPART(yy, Fecha_Pago) AS VARCHAR(4)) + '-' + RIGHT('0' + CAST(DATEPART(wk, Fecha_Pago) AS VARCHAR(2)), 2) AS SemanaID,
             MIN(Fecha_Pago) AS FechaInicioSemana,
             SUM(Importe) AS RecaudacionSemanal
-        FROM
-            PagosFiltrados
-        GROUP BY
-            DATEPART(yy, Fecha_Pago), DATEPART(wk, Fecha_Pago)
+        FROM PagosFiltrados
+        GROUP BY DATEPART(yy, Fecha_Pago), DATEPART(wk, Fecha_Pago)
     )
     -- CTE 2: Aplicar Windows Functions para el acumulado y promedio
-    SELECT
-        PS.SemanaID,
-        PS.FechaInicioSemana,
-        PS.RecaudacionSemanal AS RecaudacionSemanalTotal,
-        
+    SELECT PS.SemanaID, PS.FechaInicioSemana, PS.RecaudacionSemanal AS RecaudacionSemanalTotal,
         AVG(PS.RecaudacionSemanal) OVER (ORDER BY PS.SemanaID ROWS UNBOUNDED PRECEDING) AS PromedioAcumulado,
-        
         SUM(PS.RecaudacionSemanal) OVER (ORDER BY PS.SemanaID ROWS UNBOUNDED PRECEDING) AS AcumuladoProgresivo
-    FROM
-        PagosSemanales PS
-    ORDER BY
-        PS.SemanaID
+    FROM PagosSemanales PS
+    ORDER BY PS.SemanaID
     FOR XML PATH('Semana'), ROOT('ReporteFlujoCaja');
 END
 GO
 
 
+
 -- ==============  REPORTE 2  =======================
+
 /* Presente el total de recaudacion por mes y departamento en formato de tabla cruzada. */
 
 IF NOT EXISTS (
@@ -133,8 +120,7 @@ CREATE OR ALTER PROCEDURE cspr.sp_RecaudacionPorMesYDepartamento_01
 AS
 BEGIN
     SET NOCOUNT ON;
-
-    -- === VALIDACIONES ===
+    -- Validar parámetros
     IF @NombreConsorcio IS NULL OR LTRIM(RTRIM(@NombreConsorcio)) = ''
     BEGIN
         RAISERROR('El parámetro @NombreConsorcio es obligatorio.', 16, 1);
@@ -152,14 +138,12 @@ BEGIN
         RAISERROR('El parámetro @Mes debe estar entre 1 y 12.', 16, 1);
         RETURN;
     END
-
-    -- === OBTENER DEPARTAMENTOS DEL CONSORCIO ===
+    -- OBTENER DEPARTAMENTOS DEL CONSORCIO
     DECLARE @Columnas NVARCHAR(MAX) = '';
     DECLARE @ColumnasPivot NVARCHAR(MAX) = '';
 
-    SELECT 
-        @Columnas = @Columnas + ', ISNULL([' + Depto + '], 0) AS [' + Depto + ']',
-        @ColumnasPivot = @ColumnasPivot + ', [' + Depto + ']'
+    SELECT @Columnas = @Columnas + ', ISNULL([' + Depto + '], 0) AS [' + Depto + ']',
+              @ColumnasPivot = @ColumnasPivot + ', [' + Depto + ']'
     FROM (
         SELECT DISTINCT CONCAT(Piso, Departamento) AS Depto
         FROM ct.UnidadFuncional
@@ -180,7 +164,7 @@ BEGIN
     SET @Columnas = STUFF(@Columnas, 1, 2, '');
     SET @ColumnasPivot = STUFF(@ColumnasPivot, 1, 2, '');
 
-    -- === CONSULTA DINÁMICA ===
+    -- CONSULTA DINÁMICA
     DECLARE @SQL NVARCHAR(MAX) = '
     WITH Datos AS (
         SELECT 
@@ -213,12 +197,11 @@ BEGIN
         FOR Departamento IN (' + @ColumnasPivot + ')
     ) AS PivotTable;
     ';
-    -- === EJECUTAR ===
+    
     EXEC sp_executesql 
         @SQL,
         N'@NombreConsorcio VARCHAR(30), @Año INT, @Mes INT',
         @NombreConsorcio, @Año, @Mes;
-
 END;
 GO
 
@@ -247,14 +230,12 @@ CREATE OR ALTER PROCEDURE cspr.sp_RecaudacionDesagregadaPorProcedencia_02
 AS
 BEGIN
     SET NOCOUNT ON;
-    
     -- Validar parámetros
     IF @FechaInicio > @FechaFin
     BEGIN
         RAISERROR('La fecha de inicio no puede ser mayor que la fecha fin.', 15, 1);
         RETURN;
     END;
-
     -- CTE 1: Clasificación de pagos por procedencia (AGREGAR ; antes del WITH)
     ;WITH RecaudacionPorProcedencia AS (
         -- Pagos Ordinarios (sin gastos extraordinarios)
@@ -277,25 +258,15 @@ BEGIN
           )
         
         UNION ALL
-        
         -- Pagos Extraordinarios
-        SELECT 
-            P.ID_Pago,
-            P.Fecha_Pago,
-            P.Importe,
-            'EXTRAORDINARIO' AS Procedencia,
-            E.ID_Expensa,
-            E.NombreConsorcio,
-            C.ID_Administracion
+        SELECT P.ID_Pago, P.Fecha_Pago, P.Importe, 'EXTRAORDINARIO' AS Procedencia,
+                    E.ID_Expensa, E.NombreConsorcio, C.ID_Administracion
         FROM ct.Pago P
         INNER JOIN ct.Expensa E ON P.ID_Expensa = E.ID_Expensa
         INNER JOIN ct.Consorcio C ON E.NombreConsorcio = C.Nombre
         INNER JOIN ct.GastoExtraordinario GE ON GE.ID_Expensa = P.ID_Expensa
-        WHERE P.Fecha_Pago BETWEEN @FechaInicio AND @FechaFin
-          AND P.ID_Expensa IS NOT NULL
-        
+        WHERE P.Fecha_Pago BETWEEN @FechaInicio AND @FechaFin AND P.ID_Expensa IS NOT NULL
         UNION ALL
-        
         -- Otros ingresos
         SELECT 
             P.ID_Pago,
@@ -309,7 +280,6 @@ BEGIN
         WHERE P.Fecha_Pago BETWEEN @FechaInicio AND @FechaFin
           AND P.ID_Expensa IS NULL
     ),
-
     -- CTE 2: Construcción de períodos según @TipoPeriodo
     Periodos AS (
         SELECT 
@@ -367,9 +337,9 @@ BEGIN
         FOR Procedencia IN ([ORDINARIO], [EXTRAORDINARIO], [OTROS])
     ) AS PivotTable
     ORDER BY OrdenPeriodo;
-
 END
 GO
+
 
 
 -- ==============  REPORTE 4  =======================
@@ -392,15 +362,13 @@ CREATE or ALTER PROCEDURE cspr.sp_MesesMayorGastoIngreso_03
 AS
 BEGIN	
 	SET NOCOUNT ON;
-
---VERIFICAR QUE EL CONSORCIO EXISTA
+-- VERIFICAR QUE EL CONSORCIO EXISTA
 IF NOT EXISTS (SELECT 1 FROM CT.Consorcio WHERE Nombre= @nombreconsorcio)
 BEGIN
 	SELECT 'Error: El consorcio no se encuentra regristrado' AS Resultado;
 	RETURN;
 END;
-
---CTE PARA OBTENER LOS 5 MESES DE MAYORES GASTOS
+-- CTE PARA OBTENER LOS 5 MESES DE MAYORES GASTOS
 WITH topGastos AS (
 		SELECT TOP 5
 		FORMAT (E.Fecha, 'yyyy-MM') AS Periodo,
@@ -412,8 +380,7 @@ WITH topGastos AS (
 		AND E.Fecha <= @fechaHasta
 		ORDER BY E.EgresoGastoMensual DESC
 		),
-
---CTE 2 PARA OBTENER LOS 5 MESES CON MAYORES INGRESOS
+-- CTE 2 PARA OBTENER LOS 5 MESES CON MAYORES INGRESOS
  TOPINGRESOS AS (
 	SELECT TOP 5
 	FORMAT (E.FECHA, 'yyyy-MM') AS Periodo, 
@@ -425,7 +392,6 @@ WITH topGastos AS (
 	AND E.Fecha <= @fechaHasta
 	ORDER BY E.IngresoPagoMensual DESC
 	)
-
 SELECT Periodo, Importe, Tipo, @nombreconsorcio AS NombreConsorcio
 FROM topgastos
 UNION ALL
@@ -480,6 +446,7 @@ BEGIN
     ORDER BY MorosidadTotal DESC;
 END
 GO
+
 
 
 -- ==============  REPORTE 6  =======================
@@ -582,6 +549,5 @@ BEGIN
     SELECT @respuesta AS [Respuesta_JSON_de_la_API];
 
     EXEC sp_OADestroy @Object;
-
 END
 GO

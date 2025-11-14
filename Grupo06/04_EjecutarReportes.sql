@@ -38,7 +38,6 @@ GO
 -- REPORTE 2
 /* Presente el total de recaudacion por mes y departamento en formato de tabla cruzada. */
 
-
 EXEC cspr.sp_RecaudacionPorMesYDepartamento_01  @NombreConsorcio ='Azcuenaga',@AÑO=2025,@MES=4
 GO
 
@@ -83,7 +82,7 @@ pasan entre un pago y el siguiente, para el conjunto examinado.*/
 
 
 
---API
+-- API
 
 EXEC cspr.sp_FichaInformacionConsorcio_06 @NombreConsorcio = 'Alberdi'; 
 GO
