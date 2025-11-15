@@ -1,7 +1,12 @@
-/*Entrega 7 - Requisitos de seguridad
-Asigne los roles correspondientes para poder cumplir con este requisito, según el área a la
-cual pertenece.
-*/
+/*
+Entrega 7 - Requisitos de Seguridad
+La información de cada expensa generada es de vital importancia para el negocio, por ello se
+requiere que se establezcan políticas de respaldo tanto en las ventas diarias generadas como
+en los reportes generados.
+Plantee una política de respaldo adecuada para cumplir con este requisito y justifique la
+misma. No es necesario que incluya el código de creación de los respaldos.
+Debe documentar la programación (Schedule) de los backups por día/semana/mes (de
+acuerdo con lo que decidan) e indicar el RPO.*/
 
 /*
 FECHA DE ENTREGA: 21/11/2025
@@ -24,20 +29,3 @@ Esquemas:
  - cspr -> Creacion de Store Procedures de Reportes
  - csps -> Creacion de Store Procedure de Seguridad
 */
-
-USE Com5600G06
-
--- importar informacion bancaria
-INSERT INTO ct.MantenimientoCtaBancaria(EntidadBanco, Importe) values('entidad', 89)
-GO
-
--- Generar reportes
-EXEC cspr.sp_AnalizarFlujoCajaSemanal_00 
-    @FechaInicio = '2025-04-01',
-    @FechaFin = '2025-04-30',
-    @NombreConsorcio = 'Azcuenaga';
-GO
-
-
--- Actualizacion de datos UF (error)
-update ct.UnidadFuncional set M2_Unidad=101

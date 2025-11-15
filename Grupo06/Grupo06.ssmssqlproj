@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<SqlWorkbenchSqlProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="Grupo06">
+<SqlWorkbenchSqlProject xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="Grupo06">
   <Items>
-    <LogicalFolder Name="Connections" Type="2" Sorted="true">
+    <LogicalFolder Name="Conexiones" Type="2" Sorted="true">
       <Items>
         <ConnectionNode Name="CAM-PC\SQLEXPRESS:">
           <Created>2025-11-02T15:24:06.1852578-03:00</Created>
@@ -73,12 +73,87 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Consulta</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="DESKTOP-LKGFOHV\SQLEXPRESS:JavierPC\Javier">
+        <ConnectionNode Name="DESKTOP-JKOJ5PF\SQLEXPRESS02:AdministrativoBancario">
+          <Created>2025-11-15T18:22:35.097108-03:00</Created>
+          <Type>SQL</Type>
+          <Server>DESKTOP-JKOJ5PF\SQLEXPRESS02</Server>
+          <UserName>AdministrativoBancario</UserName>
+          <Authentication>SQL</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <TrustServerCertificate>True</TrustServerCertificate>
+          <HostNameInServerCertificate />
+          <EncryptionOption>True</EncryptionOption>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Consulta</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="DESKTOP-JKOJ5PF\SQLEXPRESS02:AdministrativoGeneral">
+          <Created>2025-11-15T18:21:39.0307701-03:00</Created>
+          <Type>SQL</Type>
+          <Server>DESKTOP-JKOJ5PF\SQLEXPRESS02</Server>
+          <UserName>AdministrativoGeneral</UserName>
+          <Authentication>SQL</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <TrustServerCertificate>True</TrustServerCertificate>
+          <HostNameInServerCertificate />
+          <EncryptionOption>True</EncryptionOption>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Consulta</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="DESKTOP-JKOJ5PF\SQLEXPRESS02:AdministrativoOperativo">
+          <Created>2025-11-15T18:23:53.4292128-03:00</Created>
+          <Type>SQL</Type>
+          <Server>DESKTOP-JKOJ5PF\SQLEXPRESS02</Server>
+          <UserName>AdministrativoOperativo</UserName>
+          <Authentication>SQL</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <TrustServerCertificate>True</TrustServerCertificate>
+          <HostNameInServerCertificate />
+          <EncryptionOption>True</EncryptionOption>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Consulta</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="DESKTOP-JKOJ5PF\SQLEXPRESS02:DESKTOP-JKOJ5PF\ecgam">
+          <Created>2025-11-15T17:59:09.6111412-03:00</Created>
+          <Type>SQL</Type>
+          <Server>DESKTOP-JKOJ5PF\SQLEXPRESS02</Server>
+          <UserName />
+          <Authentication>Autenticación de Windows</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <TrustServerCertificate>True</TrustServerCertificate>
+          <HostNameInServerCertificate />
+          <EncryptionOption>True</EncryptionOption>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Consulta</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="DESKTOP-JKOJ5PF\SQLEXPRESS02:Sistemas">
+          <Created>2025-11-15T18:25:07.3743478-03:00</Created>
+          <Type>SQL</Type>
+          <Server>DESKTOP-JKOJ5PF\SQLEXPRESS02</Server>
+          <UserName>Sistemas</UserName>
+          <Authentication>SQL</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <TrustServerCertificate>True</TrustServerCertificate>
+          <HostNameInServerCertificate />
+          <EncryptionOption>True</EncryptionOption>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Consulta</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="DESKTOP-LKGFOHV\SQLEXPRESS:">
           <Created>2025-11-15T14:25:32.8510424-03:00</Created>
           <Type>SQL</Type>
           <Server>DESKTOP-LKGFOHV\SQLEXPRESS</Server>
           <UserName />
-          <Authentication>Windows Authentication</Authentication>
+          <Authentication>SQL</Authentication>
           <InitialDB />
           <LoginTimeout>30</LoginTimeout>
           <TrustServerCertificate>False</TrustServerCertificate>
@@ -160,12 +235,12 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="JAVIERPC\SQLEXPRESS:JavierPC\Javier">
+        <ConnectionNode Name="JAVIERPC\SQLEXPRESS:">
           <Created>2025-11-15T16:44:37.3023476-03:00</Created>
           <Type>SQL</Type>
           <Server>JAVIERPC\SQLEXPRESS</Server>
           <UserName />
-          <Authentication>Windows Authentication</Authentication>
+          <Authentication>SQL</Authentication>
           <InitialDB />
           <LoginTimeout>30</LoginTimeout>
           <TrustServerCertificate>True</TrustServerCertificate>
@@ -192,89 +267,95 @@
         </ConnectionNode>
       </Items>
     </LogicalFolder>
-    <LogicalFolder Name="Queries" Type="0" Sorted="true">
+    <LogicalFolder Name="Consultas" Type="0" Sorted="true">
       <Items>
         <FileNode Name="00_GenerarObjetos.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:JAVIERPC\SQLEXPRESS:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>JAVIERPC\SQLEXPRESS</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>00_GenerarObjetos.sql</FullPath>
         </FileNode>
         <FileNode Name="01_InsertarDatos.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:JAVIERPC\SQLEXPRESS:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>JAVIERPC\SQLEXPRESS</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>01_InsertarDatos.sql</FullPath>
         </FileNode>
         <FileNode Name="02_GenerarIndices.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:JAVIERPC\SQLEXPRESS:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>JAVIERPC\SQLEXPRESS</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>02_GenerarIndices.sql</FullPath>
         </FileNode>
         <FileNode Name="03_GenerarSPReportes.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:JAVIERPC\SQLEXPRESS:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>JAVIERPC\SQLEXPRESS</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>03_GenerarSPReportes.sql</FullPath>
         </FileNode>
         <FileNode Name="04_EjecutarReportes.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:JAVIERPC\SQLEXPRESS:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>JAVIERPC\SQLEXPRESS</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>04_EjecutarReportes.sql</FullPath>
         </FileNode>
         <FileNode Name="05_CrearUsuarios.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:JAVIERPC\SQLEXPRESS:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>JAVIERPC\SQLEXPRESS</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>05_CrearUsuarios.sql</FullPath>
         </FileNode>
         <FileNode Name="06_AsignarPermisos.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:JAVIERPC\SQLEXPRESS:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>JAVIERPC\SQLEXPRESS</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>06_AsignarPermisos.sql</FullPath>
         </FileNode>
         <FileNode Name="07_EjecutarPermisos.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:JAVIERPC\SQLEXPRESS:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>JAVIERPC\SQLEXPRESS</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>07_EjecutarPermisos.sql</FullPath>
         </FileNode>
         <FileNode Name="08_TestingAdminGeneral.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:JAVIERPC\SQLEXPRESS:False:AdministrativoGeneral</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>JAVIERPC\SQLEXPRESS</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:False:AdministrativoGeneral</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
           <AssociatedConnUserName>AdministrativoGeneral</AssociatedConnUserName>
           <FullPath>08_TestingAdminGeneral.sql</FullPath>
         </FileNode>
         <FileNode Name="09_TestingAdminBancario.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:JAVIERPC\SQLEXPRESS:False:AdministrativoBancario</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>JAVIERPC\SQLEXPRESS</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:False:AdministrativoBancario</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
           <AssociatedConnUserName>AdministrativoBancario</AssociatedConnUserName>
           <FullPath>09_TestingAdminBancario.sql</FullPath>
         </FileNode>
         <FileNode Name="10_TestingAdminOperativo.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:JAVIERPC\SQLEXPRESS:False:AdministrativoOperativo</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>JAVIERPC\SQLEXPRESS</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:False:AdministrativoOperativo</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
           <AssociatedConnUserName>AdministrativoOperativo</AssociatedConnUserName>
           <FullPath>10_TestingAdminOperativo.sql</FullPath>
         </FileNode>
         <FileNode Name="11_TestingSistema.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:JAVIERPC\SQLEXPRESS:False:Sistemas</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>JAVIERPC\SQLEXPRESS</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:False:Sistemas</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
           <AssociatedConnUserName>Sistemas</AssociatedConnUserName>
           <FullPath>11_TestingSistema.sql</FullPath>
         </FileNode>
         <FileNode Name="12_CifradoDeDatos.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-LKGFOHV\SQLEXPRESS:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>DESKTOP-LKGFOHV\SQLEXPRESS</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>12_CifradoDeDatos.sql</FullPath>
         </FileNode>
+        <FileNode Name="13_Respaldos.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>13_Respaldos.sql</FullPath>
+        </FileNode>
       </Items>
     </LogicalFolder>
-    <LogicalFolder Name="Miscellaneous" Type="3" Sorted="true">
+    <LogicalFolder Name="Varios" Type="3" Sorted="true">
       <Items />
     </LogicalFolder>
   </Items>
