@@ -27,14 +27,17 @@ Esquemas:
  - ct -> Creacion de tablas
  - csp -> Creacion de Store Procedures de Importacion
  - cspr -> Creacion de Store Procedures de Reportes
- - csps -> Creacion de Store Procedure de Seguridad
+ - csps -> Creacion de Store Procedure de Segurida
+ - cspc -> Creacion de Store Procedure de Cifrado
 */
 
 USE Com5600G06
 
-select * from ct.Persona
+EXEC cspc.sp_ActualizarEstructuraYHashing
+
+SELECT * FROM ct.Persona
  
-select * from ct.UnidadFuncional
+SELECT * FROM ct.UnidadFuncional
 
 select * from ct.Pago
 
