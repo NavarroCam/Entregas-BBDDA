@@ -91,7 +91,6 @@ END
 GO
 
 
-
 IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'csp')
 BEGIN
 	EXEC('CREATE SCHEMA csp')
@@ -116,7 +115,6 @@ END
 GO
 
 
-
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
 TABLE_SCHEMA = 'ct' AND TABLE_NAME = 'Consorcio')
 BEGIN
@@ -134,14 +132,13 @@ END
 GO
 
 
-
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
 TABLE_SCHEMA = 'ct' AND TABLE_NAME = 'EstadoFinanciero')
 BEGIN
 
 CREATE TABLE ct.EstadoFinanciero (
  ID_EF INT IDENTITY (1,1) PRIMARY KEY,
- Fecha SMALLDATETIME NULL, --
+ Fecha SMALLDATETIME NULL,
  IngresoPagoMensual  DECIMAL(20,2),
  EgresoGastoMensual DECIMAL(20,2)   DEFAULT (0),
  SaldoAlCierre DECIMAL(20,2) DEFAULT(0),
@@ -150,7 +147,6 @@ CREATE TABLE ct.EstadoFinanciero (
 );
 END
 GO
-
 
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
@@ -171,7 +167,6 @@ END
 GO 
 
 
-
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
 TABLE_SCHEMA = 'ct' AND TABLE_NAME = 'UnidadFuncional')
 BEGIN
@@ -187,7 +182,7 @@ CREATE TABLE ct.UnidadFuncional (
   Cochera CHAR(2) NOT NULL,
   M2_Baulera INT NOT NULL CHECK (M2_BAULERA>=0),
   M2_Cochera INT NOT NULL CHECK (M2_COCHERA>=0),
-  CVU_CBU varchar(22),
+  CVU_CBU VARCHAR(22),
   Tipo BIT,
   CONSTRAINT PK_UNIDAD_FUNCIONAL PRIMARY KEY (ID_UF,NombreConsorcio),
   CONSTRAINT FK_UF_Consorcio FOREIGN KEY (NombreConsorcio) REFERENCES ct.Consorcio(Nombre),
@@ -195,7 +190,6 @@ CREATE TABLE ct.UnidadFuncional (
 );
 END
 GO
-
 
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
@@ -214,7 +208,6 @@ CREATE TABLE ct.Expensa (
 );
 END
 GO
-
 
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
@@ -237,7 +230,6 @@ END
 GO
 
 
-
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
 TABLE_SCHEMA = 'ct' AND TABLE_NAME = 'GastoExtraordinario')
 BEGIN
@@ -253,7 +245,6 @@ CREATE TABLE ct.GastoExtraordinario (
 );
 END
 GO
-
 
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
@@ -272,7 +263,6 @@ END
 GO
 
 
-
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
 TABLE_SCHEMA = 'ct' AND TABLE_NAME = 'GastoAdministracion')
 
@@ -285,7 +275,6 @@ CREATE TABLE ct.GastoAdministracion (
 );
 END
 GO
-
 
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
@@ -304,7 +293,6 @@ END
 GO
 
 
-
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
 TABLE_SCHEMA = 'ct' AND TABLE_NAME = 'Seguro')
 
@@ -318,7 +306,6 @@ CREATE TABLE ct.Seguro (
 );
 END
 GO
-
 
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
@@ -336,7 +323,6 @@ END
 GO
 
 
-
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
 TABLE_SCHEMA = 'ct' AND TABLE_NAME = 'MantenimientoCtaBancaria')
 
@@ -348,10 +334,8 @@ CREATE TABLE ct.MantenimientoCtaBancaria (
   ID_Expensa INT NULL,
   CONSTRAINT FK_MCB_Expensa FOREIGN KEY (ID_Expensa) REFERENCES ct.Expensa(ID_Expensa)
 );
-
 END
 GO
-
 
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE
@@ -368,7 +352,6 @@ CREATE TABLE ct.Pago (
 );
 END
 GO
-
 
 
 
@@ -402,7 +385,6 @@ END;
 GO
 
 
-
 -- 2) SP Importar datos consorcio
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
@@ -432,7 +414,6 @@ BEGIN
 		ROWTERMINATOR = ''\n'',
 		 FIRSTROW = 2
 		);';
-
 	EXEC(@Sql);
 
     -- Obtener ID_Administracion (ejemplo: el primero disponible)
@@ -447,7 +428,6 @@ BEGIN
         SELECT 1 FROM ct.Consorcio c WHERE c.Nombre = t.Nombre);
 END;
 GO
-
 
 
 -- 3) SP Importar datos Unidad Funcional txt
@@ -512,7 +492,6 @@ END;
 GO
 
 
-
 -- 4) SP Importar datos personas (propietarios e inquilinos)
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
@@ -531,11 +510,11 @@ BEGIN
 	CREATE TABLE #TempDatos (
     Nombre VARCHAR(100),
     Apellido VARCHAR(100),
-    DNI int ,
+    DNI INT ,
     Email_Personal VARCHAR(100),
-    Telefono_De_Contacto char (10),
-    CVU_CBU varchar(22),
-    Boleano int
+    Telefono_De_Contacto CHAR(10),
+    CVU_CBU VARCHAR(22),
+    Boleano INT
 	);
 
 	 DECLARE @Sql NVARCHAR(MAX);		 -- Importar archivo CSV
@@ -564,7 +543,6 @@ BEGIN
 	DROP TABLE #TempDatos;
 END;
 GO
-
 
 
 -- 5) SP Importar CBU_CVU a unidad funcional
@@ -617,7 +595,6 @@ END;
 GO
 
 
-
 -- 6) Sp importar pagos
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
@@ -666,7 +643,6 @@ BEGIN
     DROP TABLE #PagosTemp; 
 END; 
 GO
-
 
 
 -- 7) IMPORTAR DATOS DE SERVICIO
@@ -801,7 +777,6 @@ END;
 GO
 
 
-
 -- 8) SP cargar tabla Gastos extraordinarios manualmente
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
@@ -858,7 +833,6 @@ END;
 GO
 
 
-
 -- 9) SP CARGAR AL IMPORTE TOTAL EL COSTO DE LAS BAULERAS Y COCHERAS
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
@@ -887,7 +861,6 @@ END;
 GO
 
 
-
 -- 10) SP PARA AGREGAR EL ID EXPENSA EN LA TABLA PAGOS
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
@@ -910,7 +883,6 @@ END
 GO
 
 
-
 -- 11) SP CARGAR TABLA ESTADO DE CUENTA 
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
@@ -921,7 +893,7 @@ END
 GO
 
 CREATE OR ALTER PROCEDURE csp.sp_GenerarEstadoDeCuentA_10
-@numero_mes INT,@COSTE_M2_BAULERA int, @COSTE_M2_COCHERA int,@primer_estado_cuenta bit,@NOMBRE_CONSORCIO VARCHAR (30)
+@numero_mes INT,@COSTE_M2_BAULERA INT, @COSTE_M2_COCHERA INT,@primer_estado_cuenta BIT,@NOMBRE_CONSORCIO VARCHAR(30)
 AS
 BEGIN
 	IF @primer_estado_cuenta=1
@@ -983,8 +955,7 @@ END;
 GO
 
 
-
---12) SUMAR DEUDA A "Total a Pagar" de Expensa
+-- 12) SUMAR DEUDA A "Total a Pagar" de Expensa
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
     WHERE object_id = OBJECT_ID(N'csp.sp_SumarDeudaExpensasTotalAPagar_11') AND type = 'P')
@@ -1019,8 +990,7 @@ END;
 GO
 
 
-
---13) Cargar Ingresos de Estado Financiero
+-- 13) Cargar Ingresos de Estado Financiero
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
     WHERE object_id = OBJECT_ID(N'csp.SP_RellenarEstadoFinancieroIngresos_12') AND type = 'P')
@@ -1051,8 +1021,7 @@ END;
 GO
 
 
-
---14) Importa nombres de Limpieza y Seguro
+-- 14) Importa nombres de Limpieza y Seguro
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
     WHERE object_id = OBJECT_ID(N'csp.sp_ActualizarNombresProveedoresLimpiezaSeguro_13') AND type = 'P')

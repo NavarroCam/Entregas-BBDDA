@@ -29,7 +29,8 @@ Esquemas:
 USE Com5600G06
 GO
 
--- Eliminar Login
+
+-- ==============  ELIMINAR LOGIN  =======================
 
 IF EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'AdministrativoGeneral')
     DROP LOGIN [AdministrativoGeneral];
@@ -47,7 +48,8 @@ IF EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'Sistemas')
     DROP LOGIN [Sistemas];
 GO
 
--- Elimina los usuarios
+
+-- ==============  ELIMINAR USUARIOS  =======================
 
 IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'AdministrativoGeneral')
     DROP USER [AdministrativoGeneral];
@@ -65,7 +67,8 @@ IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'Sistemas')
     DROP USER [Sistemas];
 GO
 
--- Elimina Roles
+
+-- ==============  ELIMINAR ROLES  =======================
 
 IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'Rol_AdministrativoGeneral')
     DROP ROLE [Rol_AdministrativoGeneral];
@@ -83,27 +86,28 @@ IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'Rol_Sistemas')
     DROP ROLE [Rol_Sistemas];
 GO
 
--- Creacion
+
+-- ==============  CREACION  =======================
 
 CREATE LOGIN AdministrativoGeneral   
    WITH PASSWORD = 'Altos1'
-	,CHECK_POLICY = on
-go 
+	,CHECK_POLICY = ON
+GO 
 
 CREATE LOGIN AdministrativoBancario   
    WITH PASSWORD = 'Altos2'
-	,CHECK_POLICY = on
-go 
+	,CHECK_POLICY = ON
+GO 
 
 CREATE LOGIN AdministrativoOperativo   
    WITH PASSWORD = 'Altos3'
-	,CHECK_POLICY = on
-go 
+	,CHECK_POLICY = ON
+GO 
 
 CREATE LOGIN Sistemas   
    WITH PASSWORD = 'Altos4'
-	,CHECK_POLICY = on
-go 
+	,CHECK_POLICY = ON
+GO 
 
 CREATE USER AdministrativoGeneral FOR LOGIN AdministrativoGeneral WITH DEFAULT_SCHEMA = [ct];
 CREATE USER AdministrativoBancario FOR LOGIN AdministrativoBancario WITH DEFAULT_SCHEMA = [ct];
@@ -115,24 +119,20 @@ CREATE ROLE Rol_AdministrativoGeneral;
 CREATE ROLE Rol_AdministrativoBancario;
 CREATE ROLE Rol_AdministrativoOperativo;
 CREATE ROLE Rol_Sistemas;
-
 GO
+
 ALTER ROLE Rol_AdministrativoGeneral ADD MEMBER AdministrativoGeneral;
 ALTER ROLE Rol_AdministrativoOperativo ADD MEMBER AdministrativoOperativo;
 ALTER ROLE Rol_AdministrativoBancario ADD MEMBER AdministrativoBancario;
 ALTER ROLE Rol_Sistemas ADD MEMBER Sistemas;
+GO
 
 SELECT
     Rol.name AS Nombre_del_Rol,
     Miembro.name AS Usuario_Miembro
-FROM 
-    sys.database_role_members AS drm
-INNER JOIN 
-    sys.database_principals AS Rol ON drm.role_principal_id = Rol.principal_id
-INNER JOIN 
-    sys.database_principals AS Miembro ON drm.member_principal_id = Miembro.principal_id
-WHERE
-    Rol.name IN ('Rol_AdministrativoGeneral', 'Rol_AdministrativoBancario', 'Rol_AdministrativoOperativo', 'Rol_Sistemas')
-ORDER BY 
-    Nombre_del_Rol, Usuario_Miembro;
+FROM sys.database_role_members AS drm
+INNER JOIN sys.database_principals AS Rol ON drm.role_principal_id = Rol.principal_id
+INNER JOIN sys.database_principals AS Miembro ON drm.member_principal_id = Miembro.principal_id
+WHERE Rol.name IN ('Rol_AdministrativoGeneral', 'Rol_AdministrativoBancario', 'Rol_AdministrativoOperativo', 'Rol_Sistemas')
+ORDER BY Nombre_del_Rol, Usuario_Miembro;
 GO

@@ -34,6 +34,7 @@ Esquemas:
 USE Com5600G06;
 GO
 
+
 -- ==============  CREACION ESQUEMA SP GENERAR CIFRADO  =======================
 
 IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'cspc')
@@ -56,25 +57,23 @@ CREATE OR ALTER PROCEDURE cspc.sp_ActualizarEstructuraYHashing
 AS
 BEGIN
     SET NOCOUNT ON;
+
     -- 1. ELIMINAR RESTRICCIONES E ÍNDICES EXISTENTES
-        -- A. Eliminar Clave Foránea
+        -- Eliminar Clave Foránea:
     IF OBJECT_ID('ct.UnidadFuncional', 'U') IS NOT NULL AND EXISTS (
         SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_UF_Persona'
     )
     BEGIN
         ALTER TABLE ct.UnidadFuncional DROP CONSTRAINT FK_UF_Persona;
     END
-        -- B. Eliminar Primary Key
+        -- Eliminar Primary Key:
     IF OBJECT_ID('ct.Persona', 'U') IS NOT NULL AND EXISTS (
         SELECT 1 FROM sys.key_constraints WHERE name = 'PK_Persona'
     )
     BEGIN
         ALTER TABLE ct.Persona DROP CONSTRAINT PK_Persona;
     END
-        -- C. Eliminar Índices
-    IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Persona_CVU_Tipo' AND object_id = OBJECT_ID('ct.Persona'))
-        DROP INDEX IX_Persona_CVU_Tipo ON ct.Persona;
-
+        -- Eliminar Índices:
     IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_UF_Persona' AND object_id = OBJECT_ID('ct.UnidadFuncional'))
         DROP INDEX IX_UF_Persona ON ct.UnidadFuncional;
 
@@ -83,7 +82,8 @@ BEGIN
 
     IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Pago_Fecha_Expensa' AND object_id = OBJECT_ID('ct.Pago'))
         DROP INDEX IX_Pago_Fecha_Expensa ON ct.Pago;
-        -- D. Eliminar restricción UNIQUE en DNI_Persona
+
+        -- Eliminar restricción UNIQUE en DNI_Persona:
     DECLARE @ConstraintName nvarchar(256);
     SELECT @ConstraintName = kc.name
     FROM sys.key_constraints kc
@@ -95,6 +95,7 @@ BEGIN
     BEGIN
         EXEC('ALTER TABLE ct.Persona DROP CONSTRAINT ' + @ConstraintName);
     END
+
     -- 2. AMPLIAR COLUMNAS A CHAR(64)
     ALTER TABLE ct.Persona ALTER COLUMN CVU_CBU CHAR(64) NOT NULL;
     ALTER TABLE ct.Persona ALTER COLUMN Nombres CHAR(64) NOT NULL;
@@ -102,6 +103,7 @@ BEGIN
     ALTER TABLE ct.Persona ALTER COLUMN DNI_Persona CHAR(64) NOT NULL;
     ALTER TABLE ct.UnidadFuncional ALTER COLUMN CVU_CBU CHAR(64) NULL;
     ALTER TABLE ct.Pago ALTER COLUMN CVU_CBU CHAR(64) NULL;
+
     -- 3. APLICAR HASHING SHA2_256
     UPDATE ct.Persona
     SET
@@ -117,13 +119,15 @@ BEGIN
     UPDATE ct.Pago
     SET CVU_CBU = CONVERT(CHAR(64), HASHBYTES('SHA2_256', CONVERT(VARBINARY(8000), CVU_CBU)), 2)
     WHERE CVU_CBU IS NOT NULL;
+
     -- 4. RECREAR RESTRICCIONES Y ÍNDICES
     ALTER TABLE ct.Persona ADD CONSTRAINT PK_Persona PRIMARY KEY (CVU_CBU, Tipo);
     ALTER TABLE ct.UnidadFuncional
     ADD CONSTRAINT FK_UF_Persona
     FOREIGN KEY (CVU_CBU, Tipo) REFERENCES ct.Persona (CVU_CBU, Tipo);
 
-    CREATE UNIQUE NONCLUSTERED INDEX IX_Persona_CVU_Tipo ON ct.Persona (CVU_CBU, Tipo);
     CREATE NONCLUSTERED INDEX IX_UF_Persona ON ct.UnidadFuncional (CVU_CBU, Tipo);
+    CREATE NONCLUSTERED INDEX IX_Pago_Recaudacion ON ct.Pago (Fecha_Pago, CVU_CBU) INCLUDE (Importe);
+    CREATE NONCLUSTERED INDEX IX_Pago_Fecha_Expensa ON ct.Pago (Fecha_Pago, ID_Expensa) INCLUDE (Importe, CVU_CBU);
 END
 GO

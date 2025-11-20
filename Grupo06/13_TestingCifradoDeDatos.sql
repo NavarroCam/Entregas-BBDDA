@@ -39,8 +39,7 @@ SELECT * FROM ct.Persona
  
 SELECT * FROM ct.UnidadFuncional
 
-select * from ct.Pago
-
+SELECT * FROM ct.Pago
 
 EXEC cspr.SP_Reporte_Top3Morosos_04 
     @FechaDesde = '2025-03-01', 

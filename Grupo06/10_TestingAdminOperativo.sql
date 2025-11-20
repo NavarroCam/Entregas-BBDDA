@@ -29,7 +29,7 @@ USE Com5600G06
 
 -- Actualiza datos en UF
 
-update ct.UnidadFuncional set M2_Unidad=97
+UPDATE ct.UnidadFuncional SET M2_Unidad=97
 GO
 
 
@@ -44,5 +44,5 @@ GO
 
 -- Importacion de informacion bancaria (error)
 
-insert into ct.MantenimientoCtaBancaria(EntidadBanco, Importe) values('entidad', 96)
+INSERT INTO ct.MantenimientoCtaBancaria(EntidadBanco, Importe) VALUES('entidad', 96)
 GO

@@ -37,9 +37,9 @@ GO
 
 
 -- Actualizacion de datos UF
-update ct.UnidadFuncional set M2_Unidad=99
+UPDATE ct.UnidadFuncional SET M2_Unidad=99
 
 
 -- Importacion de informacion bancaria (error)
 
-insert into ct.MantenimientoCtaBancaria(EntidadBanco, Importe) values('entidad', 98)
+INSERT INTO ct.MantenimientoCtaBancaria(EntidadBanco, Importe) VALUES('entidad', 98)

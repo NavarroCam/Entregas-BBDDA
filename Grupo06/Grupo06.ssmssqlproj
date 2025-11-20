@@ -46,6 +46,21 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Consulta</ApplicationName>
         </ConnectionNode>
+        <ConnectionNode Name="CAM-PC\SQLEXPRESS:Sistemas">
+          <Created>2025-11-20T00:12:29.412678-03:00</Created>
+          <Type>SQL</Type>
+          <Server>CAM-PC\SQLEXPRESS</Server>
+          <UserName>Sistemas</UserName>
+          <Authentication>SQL</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <TrustServerCertificate>True</TrustServerCertificate>
+          <HostNameInServerCertificate />
+          <EncryptionOption>True</EncryptionOption>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Consulta</ApplicationName>
+        </ConnectionNode>
         <ConnectionNode Name="CAM-PC\SQLEXPRESS01:">
           <Created>2025-10-26T16:55:08.1712424-03:00</Created>
           <Type>SQL</Type>
@@ -315,27 +330,27 @@
           <FullPath>04_EjecutarReportes.sql</FullPath>
         </FileNode>
         <FileNode Name="05_CrearUsuarios.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:CAM-PC\SQLEXPRESS:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>CAM-PC\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>05_CrearUsuarios.sql</FullPath>
         </FileNode>
         <FileNode Name="06_AsignarPermisos.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:CAM-PC\SQLEXPRESS:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>CAM-PC\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>06_AsignarPermisos.sql</FullPath>
         </FileNode>
         <FileNode Name="07_EjecutarPermisos.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:CAM-PC\SQLEXPRESS:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>CAM-PC\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>07_EjecutarPermisos.sql</FullPath>
         </FileNode>
         <FileNode Name="08_TestingAdminGeneral.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:False:AdministrativoGeneral</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
-          <AssociatedConnUserName>AdministrativoGeneral</AssociatedConnUserName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:CAM-PC\SQLEXPRESS:False:Sistemas</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>CAM-PC\SQLEXPRESS</AssociatedConnSrvName>
+          <AssociatedConnUserName>Sistemas</AssociatedConnUserName>
           <FullPath>08_TestingAdminGeneral.sql</FullPath>
         </FileNode>
         <FileNode Name="09_TestingAdminBancario.sql">
@@ -351,8 +366,8 @@
           <FullPath>10_TestingAdminOperativo.sql</FullPath>
         </FileNode>
         <FileNode Name="11_TestingSistema.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-JKOJ5PF\SQLEXPRESS02:False:Sistemas</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>DESKTOP-JKOJ5PF\SQLEXPRESS02</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:CAM-PC\SQLEXPRESS:False:Sistemas</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>CAM-PC\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName>Sistemas</AssociatedConnUserName>
           <FullPath>11_TestingSistema.sql</FullPath>
         </FileNode>

@@ -49,9 +49,7 @@ END
 GO
 
 
-
 -- ==============  REPORTE 1  =======================
-
 /* Se desea analizar el flujo de caja en forma semanal. Debe presentar la recaudacion por
 pagos ordinarios y extraordinarios de cada semana, el promedio en el periodo, y el
 acumulado progresivo. */
@@ -72,7 +70,6 @@ CREATE OR ALTER PROCEDURE cspr.sp_AnalizarFlujoCajaSemanal_00
 AS
 BEGIN
     SET NOCOUNT ON;
-    -- CTE 1: Filtra y Agrupa los pagos por semana y consorcio
     WITH PagosFiltrados AS (
         SELECT P.Fecha_Pago, P.Importe
         FROM ct.Pago P
@@ -88,7 +85,6 @@ BEGIN
         FROM PagosFiltrados
         GROUP BY DATEPART(yy, Fecha_Pago), DATEPART(wk, Fecha_Pago)
     )
-    -- CTE 2: Aplicar Windows Functions para el acumulado y promedio
     SELECT PS.SemanaID, PS.FechaInicioSemana, PS.RecaudacionSemanal AS RecaudacionSemanalTotal,
         AVG(PS.RecaudacionSemanal) OVER (ORDER BY PS.SemanaID ROWS UNBOUNDED PRECEDING) AS PromedioAcumulado,
         SUM(PS.RecaudacionSemanal) OVER (ORDER BY PS.SemanaID ROWS UNBOUNDED PRECEDING) AS AcumuladoProgresivo
@@ -99,9 +95,7 @@ END
 GO
 
 
-
 -- ==============  REPORTE 2  =======================
-
 /* Presente el total de recaudacion por mes y departamento en formato de tabla cruzada. */
 
 IF NOT EXISTS (
@@ -120,7 +114,7 @@ CREATE OR ALTER PROCEDURE cspr.sp_RecaudacionPorMesYDepartamento_01
 AS
 BEGIN
     SET NOCOUNT ON;
-    -- Validar parámetros
+    -- Valido parámetros:
     IF @NombreConsorcio IS NULL OR LTRIM(RTRIM(@NombreConsorcio)) = ''
     BEGIN
         RAISERROR('El parámetro @NombreConsorcio es obligatorio.', 16, 1);
@@ -138,7 +132,7 @@ BEGIN
         RAISERROR('El parámetro @Mes debe estar entre 1 y 12.', 16, 1);
         RETURN;
     END
-    -- OBTENER DEPARTAMENTOS DEL CONSORCIO
+    -- Obtengo deptos del consorcio:
     DECLARE @Columnas NVARCHAR(MAX) = '';
     DECLARE @ColumnasPivot NVARCHAR(MAX) = '';
 
@@ -153,18 +147,17 @@ BEGIN
     ) AS Deptos
     ORDER BY Depto;
 
-    -- Si no hay departamentos
+    -- Si no hay departamentos:
     IF @Columnas = ''
     BEGIN
         SELECT 'No se encontraron departamentos para el consorcio: ' + @NombreConsorcio AS Mensaje;
         RETURN;
     END
-
-    -- Limpiar comas iniciales
+    -- Limpiar comas iniciales:
     SET @Columnas = STUFF(@Columnas, 1, 2, '');
     SET @ColumnasPivot = STUFF(@ColumnasPivot, 1, 2, '');
 
-    -- CONSULTA DINÁMICA
+    -- Consulta dinamica:
     DECLARE @SQL NVARCHAR(MAX) = '
     WITH Datos AS (
         SELECT 
@@ -206,9 +199,7 @@ END;
 GO
 
 
-
 -- ==============  REPORTE 3  =======================
-
 /* Presente un cuadro cruzado con la recaudacion total desagregada segun su procedencia
 (ordinario, extraordinario, etc.) segun el periodo. */
 
@@ -230,13 +221,13 @@ CREATE OR ALTER PROCEDURE cspr.sp_RecaudacionDesagregadaPorProcedencia_02
 AS
 BEGIN
     SET NOCOUNT ON;
-    -- Validar parámetros
+    -- Validar parametros:
     IF @FechaInicio > @FechaFin
     BEGIN
         RAISERROR('La fecha de inicio no puede ser mayor que la fecha fin.', 15, 1);
         RETURN;
     END;
-    -- CTE 1: Clasificación de pagos por procedencia (AGREGAR ; antes del WITH)
+    -- Clasifico de pagos por procedencia:
     ;WITH RecaudacionPorProcedencia AS (
         -- Pagos Ordinarios (sin gastos extraordinarios)
         SELECT 
@@ -280,7 +271,7 @@ BEGIN
         WHERE P.Fecha_Pago BETWEEN @FechaInicio AND @FechaFin
           AND P.ID_Expensa IS NULL
     ),
-    -- CTE 2: Construcción de períodos según @TipoPeriodo
+    -- Construcción de períodos según @TipoPeriodo:
     Periodos AS (
         SELECT 
             CASE 
@@ -321,7 +312,7 @@ BEGIN
             R.ID_Administracion
     )
 
-    -- PIVOT
+    -- PIVOT:
     SELECT Periodo,
         ISNULL([ORDINARIO], 0) AS Ordinario,
         ISNULL([EXTRAORDINARIO], 0) AS Extraordinario,
@@ -341,9 +332,7 @@ END
 GO
 
 
-
 -- ==============  REPORTE 4  =======================
-
 /* Obtenga los 5 (cinco) meses de mayores gastos y los 5 (cinco) de mayores ingresos. */
 
 IF NOT EXISTS (
@@ -362,13 +351,13 @@ CREATE OR ALTER PROCEDURE cspr.sp_MesesMayorGastoIngreso_03
 AS
 BEGIN	
 	SET NOCOUNT ON;
--- VERIFICAR QUE EL CONSORCIO EXISTA
+-- VERIFICAR QUE EL CONSORCIO EXISTA:
 IF NOT EXISTS (SELECT 1 FROM CT.Consorcio WHERE Nombre= @nombreconsorcio)
 BEGIN
 	SELECT 'Error: El consorcio no se encuentra regristrado' AS Resultado;
 	RETURN;
 END;
--- CTE PARA OBTENER LOS 5 MESES DE MAYORES GASTOS
+-- CTE PARA OBTENER LOS 5 MESES DE MAYORES GASTOS:
 WITH topGastos AS (
 		SELECT TOP 5
 		FORMAT (E.Fecha, 'yyyy-MM') AS Periodo,
@@ -380,7 +369,7 @@ WITH topGastos AS (
 		AND E.Fecha <= @fechaHasta
 		ORDER BY E.EgresoGastoMensual DESC
 		),
--- CTE 2 PARA OBTENER LOS 5 MESES CON MAYORES INGRESOS
+-- CTE 2 PARA OBTENER LOS 5 MESES CON MAYORES INGRESOS:
  TOPINGRESOS AS (
 	SELECT TOP 5
 	FORMAT (E.FECHA, 'yyyy-MM') AS Periodo, 
@@ -403,9 +392,7 @@ END
 GO
 
 
-
 -- ==============  REPORTE 5  =======================
-
 /* Obtenga los 3 (tres) propietarios con mayor morosidad. Presente informacion de contacto y
 DNI de los propietarios para que la administracion los pueda contactar o remitir el tramite al
 estudio juridico. */
@@ -448,7 +435,6 @@ END
 GO
 
 
-
 -- ==============  REPORTE 6  =======================
 /* Muestre las fechas de pagos de expensas ordinarias de cada UF y la cantidad de dias que
 pasan entre un pago y el siguiente, para el conjunto examinado.*/ 
@@ -469,7 +455,7 @@ CREATE OR ALTER PROCEDURE cspr.SP_Reporte_SecuenciaPagosXML_05 (
 )
 AS
 BEGIN
-    -- Validaciones
+    -- Validaciones:
     IF @FechaDesde IS NULL OR @FechaHasta IS NULL
     BEGIN
         RAISERROR('Debe especificar un rango de fechas válido (@FechaDesde y @FechaHasta).', 16, 1)
@@ -506,18 +492,16 @@ END
 GO
 
 
-
 -- ==============  API  =======================
-/*
-La API actua como un eco: recibe los datos de un determinado consorcio 
+/* La API actua como un eco: recibe los datos de un determinado consorcio 
 y devuelve la misma informacion junto con un ID de transaccion (generalmente 101) 
 para confirmar que el envio y recepcion de datos fue exitoso 
-y que el formato JSON es correcto
-*/
+y que el formato JSON es correcto */
 
 EXEC sp_configure 'show advanced options', 1;	--Permite editar los permisos avanzados.
 RECONFIGURE;
 GO
+
 EXEC sp_configure 'Ole Automation Procedures', 1;	-- Aqui habilitamos esta opcion avanzada
 RECONFIGURE;
 GO
@@ -595,7 +579,6 @@ BEGIN
     ) AS J;
 
     SELECT @respuesta AS [Respuesta_JSON_de_la_API];
-
     EXEC sp_OADestroy @Object;
 END
 GO

@@ -27,8 +27,8 @@ Esquemas:
 
 USE Com5600G06
 
--- importar informacion bancaria
-INSERT INTO ct.MantenimientoCtaBancaria(EntidadBanco, Importe) values('entidad', 89)
+-- Importar informacion bancaria
+INSERT INTO ct.MantenimientoCtaBancaria(EntidadBanco, Importe) VALUES('entidad', 89)
 GO
 
 -- Generar reportes
@@ -40,4 +40,4 @@ GO
 
 
 -- Actualizacion de datos UF (error)
-update ct.UnidadFuncional set M2_Unidad=101
+UPDATE ct.UnidadFuncional SET M2_Unidad=101

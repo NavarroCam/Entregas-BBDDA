@@ -83,11 +83,12 @@ EXEC cspr.SP_Reporte_SecuenciaPagosXML_05
     @FechaDesde = '2025-04-01', 
     @FechaHasta = '2025-04-30', 
     @NombreConsorcio = 'Azcuenaga';
-
+GO
 
 -- API
 
 EXEC cspr.sp_FichaInformacionConsorcio_06 @NombreConsorcio = 'Alberdi'; 
 GO
+
 EXEC cspr.sp_FichaInformacionConsorcio_06 @NombreConsorcio = 'Azcuenaga'; 
 GO
