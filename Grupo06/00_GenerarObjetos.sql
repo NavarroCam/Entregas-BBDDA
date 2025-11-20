@@ -658,6 +658,22 @@ CREATE OR ALTER PROCEDURE csp.sp_ImportarServicios_06
 @RutaArchivo NVARCHAR(260),@numero_mes INT
 AS
 BEGIN
+
+  IF EXISTS (
+        SELECT 1
+        FROM ct.EstadoFinanciero
+        WHERE MONTH(Fecha) = @numero_mes
+          AND YEAR(Fecha) = 2025
+    )
+    OR EXISTS (
+        SELECT 1
+        FROM ct.Expensa
+        WHERE MONTH(FechaEmision) = @numero_mes
+          AND YEAR(FechaEmision) = 2025
+    )
+    BEGIN
+        RETURN;
+    END
 	
 	CREATE TABLE #temp(
 	NOMBRE_CONSORCIO VARCHAR(100),

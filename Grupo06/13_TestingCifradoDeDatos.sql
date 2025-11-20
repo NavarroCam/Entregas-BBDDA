@@ -8,7 +8,10 @@ los datos mencionados. Por ello tendrán que incorporar scripts de modificación d
 de datos, modificación sobre store procedures y vistas y tal vez creación de triggers u otro
 mecanismo para implementar el cifrado. Este cambio realizado al sistema es “en un solo
 sentido” y se entiende que al aplicarlo no es reversible. Notar que también deberán modificar
-los reportes que presenten información cifrada para que sea legible.*//*
+los reportes que presenten información cifrada para que sea legible.
+*/
+
+/*
 FECHA DE ENTREGA: 21/11/2025
 NRO DE COMISION: 02-5600
 NRO DE GRUPO: GRUPO 06
