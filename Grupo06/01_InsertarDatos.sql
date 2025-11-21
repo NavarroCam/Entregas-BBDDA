@@ -220,13 +220,7 @@ EXEC csp.sp_ActualizarNombresProveedoresLimpiezaSeguro_13 'C:\TP_Base_de_datos_a
 SELECT * FROM ct.Administracion FOR XML AUTO, ELEMENTS;
 SELECT * FROM ct.Consorcio FOR XML AUTO, ELEMENTS;
 SELECT * FROM ct.EstadodeCuenta FOR XML AUTO, ELEMENTS;
-
-SELECT *,
-LAG(SALDOALCIERRE,1,0) OVER (PARTITION BY NOMBRECONSORCIO ORDER BY ID_EF) AS SaldoAnterior
-
-FROM ct.EstadoFinanciero
-FOR XML AUTO, ELEMENTS;
-
+SELECT * FROM ct.EstadoFinanciero FOR XML AUTO, ELEMENTS;
 SELECT * FROM ct.Expensa FOR XML AUTO, ELEMENTS;
 SELECT * FROM ct.GastoAdministracion FOR XML AUTO, ELEMENTS;
 SELECT * FROM ct.GastoExtraordinario FOR XML AUTO, ELEMENTS;
