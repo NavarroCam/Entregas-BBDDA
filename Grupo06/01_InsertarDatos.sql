@@ -253,4 +253,5 @@ SELECT * FROM ct.Seguro
 SELECT * FROM ct.ServicioPublico
 SELECT * FROM ct.UnidadFuncional
 SELECT * FROM ct.Consorcio
+SELECT * FROM ct.EstadoDeCuenta
 */

@@ -745,37 +745,40 @@ BEGIN
 	INNER JOIN ct.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
 	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL AND MONTH (T.FECHA)=@numero_mes;
 
+	DECLARE @Offset INT;
+    SELECT @Offset = COUNT(*) FROM ct.GastoGeneral;
+
 	INSERT INTO ct.GastoGeneral(Importe,ID_Expensa) 
 	SELECT T.GASTOS_GENERALES*0.01*U.PorcentajeProrrateo,
-	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
+	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @Offset AS ID_Expensa
 	FROM #temp T
 	INNER JOIN ct.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
 	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL AND MONTH (T.FECHA)=@numero_mes;
 
 	INSERT INTO ct.GastoAdministracion(Importe,ID_Expensa) 
 	SELECT T.ADMINISTRACION*0.01*U.PorcentajeProrrateo,
-	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
+	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @Offset AS ID_Expensa
 	FROM #temp T
 	INNER JOIN ct.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
 	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL AND MONTH (T.FECHA)=@numero_mes;
 
 	INSERT INTO ct.Seguro (Importe,ID_Expensa)
 	SELECT T.SEGUROS*0.01*U.PorcentajeProrrateo,
-	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
+	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @Offset AS ID_Expensa
 	FROM #temp T
 	INNER JOIN ct.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
 	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL and MONTH (T.FECHA)=@numero_mes;
 
 	INSERT INTO ct.MantenimientoCtaBancaria (Importe,id_expensa)
 	SELECT T.BANCARIOS*0.01*U.PorcentajeProrrateo,
-	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
+	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @Offset AS ID_Expensa
 	FROM #temp T
 	INNER JOIN ct.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
 	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL AND MONTH (T.FECHA)=@numero_mes;
 
 	INSERT INTO ct.ServicioPublico (ImporteAgua,ImporteLuz,ID_Expensa)
 	SELECT T.SERVICIOS_PUBLICOS_Agua*0.01*U.PorcentajeProrrateo,T.SERVICIOS_PUBLICOS_Luz*0.01*U.PorcentajeProrrateo,
-	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
+	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @Offset AS ID_Expensa
 	FROM #temp T
 	INNER JOIN ct.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
 	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL AND MONTH (T.FECHA)=@numero_mes;
@@ -783,7 +786,7 @@ BEGIN
 	
 	INSERT INTO ct.Limpieza(Importe,ID_Expensa)
 	SELECT T.LIMPIEZA*0.01*U.PorcentajeProrrateo,
-	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID_Expensa
+	ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @Offset AS ID_Expensa
 	FROM #temp T
 	INNER JOIN ct.UnidadFuncional U ON U.NombreConsorcio=T.NOMBRE_CONSORCIO
 	WHERE  T.NOMBRE_CONSORCIO IS NOT NULL AND MONTH (T.FECHA)=@numero_mes;
