@@ -248,6 +248,7 @@ SELECT * FROM ct.Limpieza
 SELECT * FROM ct.MantenimientoCtaBancaria
 SELECT * FROM ct.Pago
 SELECT * FROM ct.Persona
+SELECT * FROM ct.EstadoFinanciero
 SELECT * FROM ct.Seguro
 SELECT * FROM ct.ServicioPublico
 SELECT * FROM ct.UnidadFuncional

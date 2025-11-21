@@ -38,7 +38,8 @@ END
 GO
 
 
--- Permiso para actualizacion de datos UF:
+
+-- ==============  Permiso para actualizacion de datos UF  =======================
 
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
@@ -67,7 +68,8 @@ END
 GO
 
 
--- Permiso para importancion de informacion Bancaria:
+
+-- ==============  Permiso para importancion de informacion Bancaria  =======================
 
 IF NOT EXISTS (
     SELECT * FROM sys.objects 
@@ -93,7 +95,8 @@ END
 GO
 
 
--- Permiso para generacion de reportes: 
+
+-- ==============  Permiso para generacion de reportes  ======================= 
 
 IF NOT EXISTS (
     SELECT * FROM sys.objects 

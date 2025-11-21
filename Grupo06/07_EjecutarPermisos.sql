@@ -28,25 +28,28 @@ Esquemas:
 USE Com5600G06
 GO
 
---permisos Administrativo general--
 
-exec csps.sp_ActualizacionDeDatosUF_00 'Rol_AdministrativoGeneral'
-exec csps.sp_GeneracionReportes_02 'Rol_AdministrativoGeneral'
+-- ==============  Permisos Administrativo General  =======================
+
+EXEC csps.sp_ActualizacionDeDatosUF_00 'Rol_AdministrativoGeneral'
+EXEC csps.sp_GeneracionReportes_02 'Rol_AdministrativoGeneral'
 
 
---permisos Administrativo Bancario--
+-- ==============  Permisos Administrativo Bancario  =======================
 
-exec csps.sp_ImportacionInformacionBancaria_01 'Rol_AdministrativoBancario'
-exec csps.sp_GeneracionReportes_02 'Rol_AdministrativoBancario'
+EXEC csps.sp_ImportacionInformacionBancaria_01 'Rol_AdministrativoBancario'
+EXEC csps.sp_GeneracionReportes_02 'Rol_AdministrativoBancario'
 
---permisos Administrativo Operativo--
 
-exec csps.sp_ActualizacionDeDatosUF_00 'Rol_AdministrativoOperativo'
-exec csps.sp_GeneracionReportes_02 'Rol_AdministrativoOperativo'
+-- ==============  Permisos Administrativo Operativo  =======================
 
---permisos del Sistema--
+EXEC csps.sp_ActualizacionDeDatosUF_00 'Rol_AdministrativoOperativo'
+EXEC csps.sp_GeneracionReportes_02 'Rol_AdministrativoOperativo'
 
-exec csps.sp_GeneracionReportes_02 'Rol_Sistemas'
+
+-- ==============  Permisos del Sistema  =======================
+
+EXEC csps.sp_GeneracionReportes_02 'Rol_Sistemas'
 
 
 SELECT

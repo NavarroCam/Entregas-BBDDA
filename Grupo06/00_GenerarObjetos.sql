@@ -923,6 +923,7 @@ BEGIN
 	    FROM ct.Expensa E
 	    INNER JOIN ct.UnidadFuncional U ON U.ID_UF = E.ID_UF AND U.NombreConsorcio = E.NombreConsorcio
 	    WHERE MONTH(E.FechaEmision) = @numero_mes AND U.NombreConsorcio = @NOMBRE_CONSORCIO)
+		
 		INSERT INTO ct.EstadodeCuenta(ID_EstadoDeCuenta,Fecha,ImporteBaulera,ImporteCochera,SaldoAnterior,PagoRecibido,InteresPorMora1V,InteresPorMora2V,Deuda)
 		SELECT ex.ID_Expensa,EX.FechaEmision,
 		@COSTE_M2_BAULERA*U.M2_BAULERA,
@@ -936,6 +937,11 @@ BEGIN
 		INNER JOIN PagosCalculados pa ON pa.ID_UF=ex.ID_UF and pa.NombreConsorcio=ex.NombreConsorcio
 		INNER JOIN ct.UnidadFuncional u ON u.ID_UF=ex.ID_UF and u.NombreConsorcio=ex.NombreConsorcio  
 		WHERE ex.NombreConsorcio=@NOMBRE_CONSORCIO AND MONTH (EX.FechaEmision)=@numero_mes
+		AND NOT EXISTS (
+              SELECT 1 FROM ct.EstadodeCuenta ec WHERE ec.ID_EstadoDeCuenta = EX.ID_Expensa  -- Sin Duplicados
+          );
+
+
 	END
 	ELSE 
 	BEGIN
@@ -966,6 +972,10 @@ BEGIN
 		INNER JOIN PagosCalculados pa ON pa.ID_UF=ex.ID_UF AND pa.NombreConsorcio=ex.NombreConsorcio
 		INNER JOIN ct.UnidadFuncional u ON u.ID_UF=ex.ID_UF AND u.NombreConsorcio=ex.NombreConsorcio
 		WHERE ex.NombreConsorcio=@NOMBRE_CONSORCIO AND MONTH (EX.FechaEmision)=@numero_mes
+		AND NOT EXISTS (
+              SELECT 1 FROM ct.EstadodeCuenta ec WHERE ec.ID_EstadoDeCuenta = EX.ID_Expensa  -- Sin Duplicados
+          );
+
 	END
 END; 
 GO
